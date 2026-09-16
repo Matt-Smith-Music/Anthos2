@@ -1,0 +1,103 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Anthos Music Suite</title><style>
+body{margin:0;background:#101315;color:#EEF0F2;font-family:ui-sans-serif,system-ui,-apple-system,sans-serif;padding:28px 20px}
+h1{font-size:22px;color:#FFD84D;letter-spacing:.04em}h2{font-size:12px;letter-spacing:.16em;color:#8E98A3;margin:22px 0 8px;text-transform:uppercase}
+a{display:block;background:#171B1E;border:1px solid #2A3136;border-radius:10px;padding:12px 14px;margin:6px 0;color:#EEF0F2;text-decoration:none;font-size:15px}
+a:active{border-color:#FFD84D}
+.badge{display:block;border-radius:10px;padding:11px 14px;margin:14px 0 4px;font-size:13px;line-height:1.45;border:1px solid;background:#171B1E;border-color:#2A3136;color:#8E98A3}
+.badge.busy{background:#1D2226;border-color:#7A5A20;color:#FFC97A}
+.badge.ok{background:#12210F;border-color:#3D6B2E;color:#A8E08A}
+.badge.bad{background:#241012;border-color:#7A2A2E;color:#FFA8AC}</style><link rel="manifest" href="./manifest.json"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style id="anthosSkin">
+:root{--skPanel:#171B1E;--skPanel2:#1D2226;--skLine:#2A3136;--skInk:#EEF0F2;--skMut:#8E98A3;--skAcc:#FFD84D;--skAccL:#FFE37F;--skAccD:#C7A83C;--skOn:#15130E}
+button.btn,button.go,button.ghost,button.chip,button.primary,button.play,button.subbtn,button.switch-btn,button.lvlchip,button.bigbtn,button.opt,button.nav,button.reveal,button.seg-btn,button.again,button.mix,button.rndbtn,button.deg,button.flashcard,.scoperow button,.seg button,.panel .primary,.panel .ghost{border-radius:11px!important;font-weight:700!important;-webkit-tap-highlight-color:transparent;transition:transform .05s,border-color .12s,color .12s;font-family:inherit}
+button.chip{border-radius:9px!important}
+button.seg-btn,.scoperow button,.seg button{border-radius:8px!important}
+.seg{border-radius:10px!important;overflow:hidden}
+button.btn:active,button.go:active,button.ghost:active,button.chip:active,button.primary:active,button.play:active,button.subbtn:active,button.switch-btn:active,button.lvlchip:active,button.bigbtn:active,button.opt:active,button.nav:active,button.reveal:active,button.seg-btn:active,button.again:active,button.mix:active,button.rndbtn:active,button.deg:active,button.flashcard:active,.scoperow button:active,.seg button:active,.panel .primary:active,.panel .ghost:active{transform:translateY(1px)}
+button.go:not(.alt),button.btn.primary,button.primary,button.play,button.bigbtn,button.switch-btn.on,.panel .primary{background:linear-gradient(180deg,#FFE37F,#C7A83C)!important;border:1px solid #FFD84D!important;color:#15130E!important;box-shadow:0 1px 0 rgba(0,0,0,.35);text-shadow:none!important}
+button.go:not(.alt):disabled,button.btn.primary:disabled,button.primary:disabled,button.play:disabled,button.bigbtn:disabled,button.switch-btn.on:disabled,.panel .primary:disabled{opacity:.4!important}
+button.reveal{border:1px solid var(--skLine)!important;background:var(--skPanel2)!important;color:var(--skAcc)!important}
+button.go.alt,button.ghost,.panel .ghost{background:var(--skPanel2)!important;border:1px solid var(--skLine)!important;color:var(--skInk)!important}
+button.go.alt.on,button.go.alt:active,button.ghost:active{border-color:var(--skAcc)!important;color:var(--skAcc)!important}
+#appBack .chev{color:#FFD84D!important}
+</style>
+</head><body>
+<h1>Anthos Music Suite</h1>
+<div class="badge" id="offlineBadge">Checking offline status…</div>
+<h2>Practice rooms</h2>
+<a href="anthos-grade1-guitar.html">Grade 1 practice room</a>
+<a href="anthos-grade2-guitar.html">Grade 2 practice room</a>
+<a href="anthos-grade3-guitar.html">Grade 3 practice room</a>
+<a href="anthos-grade4-guitar.html">Grade 4 practice room</a>
+<a href="anthos-grade5-guitar.html">Grade 5 practice room</a>
+<a href="anthos-grade6-guitar.html">Grade 6 practice room</a>
+<a href="anthos-grade7-guitar.html">Grade 7 practice room</a>
+<a href="anthos-grade8-guitar.html">Grade 8 practice room</a>
+<h2>Ear training</h2>
+<a href="anthos-ear-training-grade1.html">Grade 1 ear training</a>
+<a href="anthos-ear-training-grade2.html">Grade 2 ear training</a>
+<a href="anthos-ear-training-grade3.html">Grade 3 ear training</a>
+<a href="anthos-ear-training-grade4.html">Grade 4 ear training</a>
+<a href="anthos-ear-training-grade5.html">Grade 5 ear training</a>
+<a href="anthos-ear-training-grade6.html">Grade 6 ear training</a>
+<a href="anthos-ear-training-grade7.html">Grade 7 ear training</a>
+<a href="anthos-ear-training-grade8.html">Grade 8 ear training</a>
+<h2>Reading & games</h2>
+<a href="rhythm-reading.html">Rhythm Reading — 100 studies</a>
+<a href="short-fuse.html">Short Fuse</a>
+<a href="interval-fuse.html">Interval Fuse</a>
+<a href="sight-fuse.html">Sight Fuse — sight reading</a>
+<a href="parp-patrol.html">Parp Patrol — rhythm reading for younger &amp; SEN players</a>
+<h2>Bass practice rooms</h2>
+<a href="anthos-grade1-bass.html">Grade 1 bass</a>
+<a href="anthos-grade2-bass.html">Grade 2 bass</a>
+<a href="anthos-grade3-bass.html">Grade 3 bass</a>
+<a href="anthos-grade4-bass.html">Grade 4 bass</a>
+<a href="anthos-grade5-bass.html">Grade 5 bass</a>
+<a href="anthos-grade6-bass.html">Grade 6 bass</a>
+<a href="anthos-grade7-bass.html">Grade 7 bass</a>
+<a href="anthos-grade8-bass.html">Grade 8 bass</a>
+<h2>Tools</h2>
+<a href="tuner.html">Tuner — guitar &amp; bass</a>
+<script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){addEventListener('load',function(){navigator.serviceWorker.register('./sw.js')})}</script><script>
+(function(){
+  var t0=Date.now(), NEED=74, el=document.getElementById('offlineBadge');
+  if(!el) return;
+  function set(cls,txt){ el.className='badge '+cls; el.textContent=txt; }
+  function localHost(){ return location.hostname==='localhost'||location.hostname==='127.0.0.1'; }
+  async function poll(){
+    if(!('serviceWorker' in navigator)||!('caches' in window)){
+      set('bad','Offline storage is not available in this browser.'); return; }
+    if(location.protocol!=='https:'&&!localHost()){
+      set('bad','Offline needs the https:// web address — it cannot work from a file opened directly.'); return; }
+    var n=0;
+    try{
+      var names=await caches.keys();
+      for(var i=0;i<names.length;i++){
+        if(names[i].indexOf('anthos-')!==0) continue;
+        var c=await caches.open(names[i]);
+        var keys=await c.keys();
+        var local=keys.filter(function(r){ return r.url.indexOf(location.origin)===0; }).length;
+        if(local>n) n=local;
+      }
+    }catch(e){ set('bad','Could not read offline storage on this device.'); return; }
+    var ctl=!!navigator.serviceWorker.controller;
+    if(n>=NEED&&ctl){
+      set('ok','\u2713 Offline ready \u2014 all '+NEED+' pages saved on this device. Safe to go into Airplane Mode.');
+    } else if(n>=NEED&&!ctl){
+      set('busy','Files saved \u2014 pull down to reload this page once to switch offline mode on.');
+    } else if(Date.now()-t0>30000&&n===0){
+      set('bad','Offline saving has not started. Reload the page, check you are on the main https:// address, and make sure this is not a Private tab.');
+      return;
+    } else if(Date.now()-t0>60000){
+      set('bad','Offline save stalled at '+n+' of '+NEED+'. Reload the page while online to finish it.');
+      return;
+    } else {
+      set('busy','Saving for offline\u2026 '+n+' of '+NEED+' pages. Stay online and keep this page open.');
+    }
+    setTimeout(poll,800);
+  }
+  poll();
+})();
+</script></body></html>

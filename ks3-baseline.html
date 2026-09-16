@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101315">
+<meta name="robots" content="noindex,nofollow">
+<title>Year 7 Music Baseline</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style>
+:root{--bg:#101315;--panel:#171B1E;--panel2:#1D2226;--line:#2A3136;--ink:#EEF0F2;--mut:#8E98A3;--acc:#4D9FFF;--accL:#7FBAFF;--accD:#2E6FC2;--good:#58D68D;--warn:#FFD166;--bad:#FF6B6B;--pink:#FF6FA5;--purple:#B06BFF;--green:#4CE07A;--yellow:#FFD84D}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;background:var(--bg);color:var(--ink);font-family:'Avenir Next','Segoe UI',system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+#appBack{display:flex;align-items:center;gap:7px;height:calc(44px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 14px 0 12px;background:#0C0E10;color:var(--ink);font:700 14px/1 system-ui,sans-serif;text-decoration:none;border-bottom:1px solid var(--line)}
+#appBack .chev{font-size:19px;line-height:1;margin-top:-2px;color:var(--acc)}
+header{display:flex;align-items:center;gap:10px;padding:10px 14px 6px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.02em;color:#FF6FA5;}
+.logo small{display:block;font-size:11px;color:var(--mut);-webkit-text-fill-color:var(--mut);font-weight:600;letter-spacing:0}
+header .sp{flex:1}
+.tabs{display:flex;margin:0 14px 10px;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.tabs button{flex:1;border:0;background:none;color:var(--mut);font:700 13px/1 inherit;font-family:inherit;min-height:38px;cursor:pointer}
+.tabs button.sel{background:var(--panel2);color:var(--ink);box-shadow:inset 0 -2px 0 var(--acc)}
+main{padding:0 14px 40px;max-width:900px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px}
+h2{font:800 15px/1.25 inherit;margin:0 0 6px}
+h3{font:700 13px/1.25 inherit;margin:10px 0 4px;color:var(--acc)}
+p{font:500 13px/1.45 inherit;color:var(--mut);margin:0 0 8px}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:11px;min-height:40px;padding:8px 13px;font:700 13.5px/1 inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,var(--accL),var(--accD));border-color:var(--acc);color:#fff}
+.btn.small{min-height:32px;padding:5px 9px;font-size:12px;border-radius:9px}
+.btn.on{border-color:var(--acc);color:var(--acc)}
+.btn.danger{color:var(--bad);border-color:#5a2a2e}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font:600 12.5px/1 inherit;font-family:inherit;color:var(--mut);cursor:pointer}
+.chip.sel{border-color:var(--acc);color:var(--ink)}
+input[type=text],select,textarea{background:#0C0E10;color:var(--ink);border:1px solid var(--line);border-radius:9px;padding:9px 10px;font:600 14px/1.2 inherit;font-family:inherit;-webkit-user-select:text;user-select:text}
+textarea{width:100%;min-height:70px;font-weight:500;resize:vertical}
+table{width:100%;border-collapse:collapse;font:600 12.5px/1.2 inherit}
+th,td{border-bottom:1px solid var(--line);padding:7px 5px;text-align:left;white-space:nowrap}
+th{color:var(--mut);font-weight:700;font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+td.num{text-align:center}
+.grid{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.score{display:inline-flex;gap:3px}
+.score button{width:28px;height:28px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);color:var(--mut);font:700 12px/1 inherit;font-family:inherit;cursor:pointer;padding:0}
+.score button.sel{border-color:var(--acc);color:#fff;background:var(--acc)}
+.band{display:inline-block;border-radius:999px;padding:4px 9px;font:700 11px/1 inherit;color:#101315}
+.band.b0{background:var(--bad)}.band.b1{background:var(--warn)}.band.b2{background:var(--green)}.band.b3{background:var(--acc)}.band.bx{background:var(--line);color:var(--mut)}
+.arrow{font-weight:800}
+.arrow.up{color:var(--good)}.arrow.dn{color:var(--bad)}
+.rubric{display:grid;grid-template-columns:1fr;gap:6px}
+.rub{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font:500 12.5px/1.4 inherit}
+.rub b{display:block;color:var(--acc);font-size:12px;margin-bottom:2px}
+.bars{display:flex;gap:6px;align-items:flex-end;height:110px;margin:8px 0 4px}
+.bars div{flex:1;background:var(--acc);border-radius:6px 6px 0 0;position:relative;min-height:2px}
+.bars div span{position:absolute;bottom:100%;left:0;right:0;text-align:center;font:700 11px/1.6 inherit}
+.bars div i{position:absolute;top:100%;left:0;right:0;text-align:center;font:600 10px/1.6 inherit;color:var(--mut);font-style:normal}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin:6px 0}
+.opts.seven{grid-template-columns:repeat(7,1fr)}
+.opts button{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:11px;min-height:46px;font:700 15px/1 inherit;font-family:inherit;cursor:pointer}
+.opts button.right{border-color:var(--good);color:var(--good)}
+.opts button.wrong{border-color:var(--bad);color:var(--bad)}
+canvas#stave{width:100%;height:120px;display:block;background:#0C0E10;border:1px solid var(--line);border-radius:10px;margin:6px 0}
+.big{font:800 34px/1 inherit;margin:8px 0}
+.foot{font:500 11.5px/1.4 inherit;color:var(--mut)}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#22282D;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:10px 14px;font:600 13px/1.3 inherit;opacity:0;transition:opacity .18s;pointer-events:none;z-index:50;max-width:calc(100% - 28px);text-align:center}
+#toast.on{opacity:1}
+@media print{#appBack,header,.tabs,.btn,.chips,.score button:not(.sel){display:none}body{background:#fff;color:#000}.card{border-color:#999}}
+</style>
+<style>.psLink{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:99999;font:700 12px/1 system-ui,sans-serif;color:var(--acc);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:#0C0E10}</style>
+</head>
+<body>
+<a id="appBack" href="index.html"><span class="chev">‹</span>All apps</a><a class="psLink" href="practice-schedule.html?app=ks3-baseline&name=Year%207%20Music%20Baseline" target="_blank" rel="noopener">Schedule</a>
+<header>
+  <div class="logo">Year 7 Music Baseline<small>KS3 national curriculum · performing, composing, listening, notation</small></div>
+  <div class="sp"></div>
+  <button class="btn small" id="bExport">Export CSV</button>
+  <button class="btn small" id="bBackup">Backup</button>
+  <button class="btn small" id="bRestore">Restore</button>
+  <input id="restoreFile" type="file" accept=".json,application/json" hidden>
+</header>
+<div class="tabs" id="tabs">
+  <button data-t="classes" class="sel">Classes</button>
+  <button data-t="assess">Assess</button>
+  <button data-t="results">Results</button>
+  <button data-t="tests">Student tests</button>
+</div>
+<main id="main"></main>
+<div id="toast"></div>
+<script>
+const GLY_SRC={
+  headB:{u:'E0A4',w:314,d:'M0 -39c0 68 73 172 200 172c66 0 114 -37 114 -95c0 -84 -106 -171 -218 -171c-64 0 -96 30 -96 94z'},
+  headH:{u:'E0A3',w:314,d:'M278 64c0 22 -17 39 -43 39c-12 0 -26 -3 -41 -10c-85 -43 -165 -94 -165 -156c5 -25 15 -32 49 -32c67 11 200 95 200 159zM0 -36c0 68 73 174 200 174c66 0 114 -39 114 -97c0 -84 -106 -173 -218 -173c-64 0 -96 32 -96 96z'},
+  headW:{u:'E0A2',w:405,d:'M198 133c102 0 207 -45 207 -133c0 -92 -118 -133 -227 -133c-101 0 -178 46 -178 133c0 88 93 133 198 133zM293 -21c0 14 -3 29 -8 44c-7 20 -18 38 -33 54c-20 21 -43 31 -68 31l-20 -2c-15 -5 -27 -14 -36 -28c-4 -9 -6 -17 -8 -24s-3 -16 -3 -27c0 -15 3 -34 9 -57 s18 -41 34 -55c15 -15 36 -23 62 -23c4 0 10 1 18 2c19 5 32 15 40 30s13 34 13 55z'},
+  flag8:{u:'E240',w:276,d:'M179 -646c15 29 29 55 46 102c18 49 30 108 30 138c0 105 -80 173 -168 200c-18 5 -47 9 -87 16v190h22c8 0 33 -61 71 -95c4 -3 -2 3 61 -56c62 -58 122 -137 122 -241c0 -38 -13 -106 -35 -163c-20 -51 -43 -99 -66 -132c-6 -5 -10 -7 -13 -7s-5 2 -5 5l4 10 c1 3 14 25 18 33z'},
+  flag16:{u:'E242',w:276,d:'M206 -748c32 48 49 100 49 149c0 89 -55 168 -168 203c-18 5 -47 9 -87 16v190v190h22c8 0 33 -61 71 -95c4 -3 -2 3 61 -56c62 -58 122 -137 122 -241c0 -32 -7 -65 -17 -96c11 -29 17 -60 17 -94c0 -71 -32 -148 -67 -190c-6 -5 -10 -7 -13 -7s-5 2 -5 5l4 10 c1 3 6 8 11 16zM248 -463c4 18 7 38 7 57c0 105 -80 173 -168 200c-11 3 -27 6 -47 9c9 -17 23 -61 53 -88c4 -3 -2 3 61 -56c36 -33 71 -74 94 -122z'},
+  rW:{u:'E4E3',w:300,d:'M0 -115v105c0 9 1 10 10 10h280c9 0 10 -1 10 -10v-105c0 -9 -1 -10 -10 -10h-280c-9 0 -10 1 -10 10z'},
+  rH:{u:'E4E4',w:300,d:'M0 10v105c0 9 1 10 10 10h280c9 0 10 -1 10 -10v-105c0 -9 -1 -10 -10 -10h-280c-9 0 -10 1 -10 10z'},
+  rQ:{u:'E4E5',w:305,d:'M107 292c-13 24 -30 49 -52 71c-1 1 0 2 0 3l-2 2c3 3 4 4 6 4c12 0 26 -7 40 -20s44 -40 89 -81c26 -24 28 -29 46 -47c4 -4 8 -9 10 -14c6 -8 8 -16 8 -27c0 -19 -12 -40 -36 -61c-28 -23 -49 -38 -61 -73c-4 -11 -7 -27 -10 -50c13 -43 34 -83 59 -121 c31 -47 59 -79 101 -129c-8 0 -26 7 -54 20l-62 29l-21 6l-23 1c-25 0 -45 -10 -60 -30l-4 -14l-1 -12c0 -33 20 -56 39 -78c8 -9 17 -18 26 -26c17 -15 27 -24 28 -30l-3 -3c-11 5 -19 10 -25 15c-9 3 -37 21 -45 26c-24 14 -45 32 -63 51c-19 21 -37 44 -37 71 c0 63 27 95 80 95c41 0 86 -18 136 -52c-19 26 -37 48 -55 66c-23 23 -48 44 -73 65c-28 23 -47 40 -58 53s-17 26 -18 39c75 64 113 125 113 183c0 27 -7 48 -18 68z'},
+  r8:{u:'E4E6',w:276,d:'M0 123c7 34 33 56 69 60c29 -3 43 -9 53 -29c4 -8 7 -15 10 -22c0 -21 -1 -25 -11 -35c-5 -8 -18 -14 -40 -20l12 -3l15 -1c44 0 97 26 122 56c10 11 18 26 24 42c7 1 15 2 22 3l-140 -424h-36l111 330c-10 -6 -27 -12 -53 -16l-52 -8h-10l-20 1c-1 0 -8 3 -21 6 c-37 9 -55 28 -55 60z'},
+  r16:{u:'E4E7',w:325,d:'M133 -111c0 -33 -21 -50 -52 -55c10 -3 18 -4 25 -4c40 0 69 24 90 47l66 197c-36 -18 -64 -25 -112 -25c-23 0 -38 3 -45 8c-37 7 -55 27 -55 59c8 35 30 54 68 58c45 -6 49 -13 64 -48c0 -3 1 -5 1 -7c0 -27 -25 -46 -52 -49c6 -4 15 -6 26 -6c32 2 62 14 88 29 c32 19 44 36 59 71l7 1l10 2h4c-72 -220 -143 -439 -215 -659h-37l108 324c-20 -13 -51 -20 -82 -20c-21 0 -35 4 -43 10c-37 6 -55 26 -55 58c8 35 31 56 68 60c43 -8 48 -13 64 -51z'},
+  dot:{u:'E1E7',w:129,d:'M0 0c0 35 29 66 64 66s65 -31 65 -66c0 -34 -30 -65 -65 -65s-64 31 -64 65z'},
+  clefG:{u:'E050',w:643,d:'M441 -245c-23 -4 -48 -6 -76 -6c-59 0 -102 7 -130 20c-88 42 -150 93 -187 154c-26 44 -43 103 -48 176c0 6 -1 13 -1 19c0 54 15 111 45 170c29 57 65 106 110 148s96 85 153 127c-3 16 -8 46 -13 92c-4 43 -5 73 -5 89c0 117 16 172 69 257c34 54 64 82 89 82 c21 0 43 -30 69 -92s39 -115 41 -159v-15c0 -109 -21 -162 -67 -241c-13 -20 -63 -90 -98 -118c-13 -9 -25 -19 -37 -29l31 -181c8 1 18 2 28 2c58 0 102 -12 133 -35c59 -43 92 -104 98 -184c1 -7 1 -15 1 -22c0 -123 -87 -209 -181 -248c8 -57 17 -110 25 -162 c5 -31 6 -58 6 -80c0 -30 -5 -53 -14 -70c-35 -64 -88 -99 -158 -103c-5 0 -11 -1 -16 -1c-37 0 -72 10 -108 27c-50 24 -77 59 -80 105v11c0 29 7 55 20 76c18 28 45 42 79 44h6c49 0 93 -42 97 -87v-9c0 -51 -34 -86 -105 -106c17 -24 51 -36 102 -36c62 0 116 43 140 85 c9 16 13 41 13 74c0 20 -1 42 -5 67c-8 53 -18 106 -26 159zM461 939c-95 0 -135 -175 -135 -286c0 -24 2 -48 5 -71c50 39 92 82 127 128c40 53 60 100 60 140v8c-4 53 -22 81 -55 81h-2zM406 119l54 -326c73 25 110 78 110 161c0 7 0 15 -1 23c-7 95 -57 142 -151 142h-12 zM382 117c-72 -2 -128 -47 -128 -120v-7c2 -46 43 -99 75 -115c-3 -2 -7 -5 -10 -10c-70 33 -116 88 -123 172v11c0 68 44 126 88 159c23 17 49 29 78 36l-29 170c-21 -13 -52 -37 -92 -73c-50 -44 -86 -84 -109 -119c-45 -69 -67 -130 -67 -182v-13c5 -68 35 -127 93 -176 s125 -73 203 -73c25 0 50 3 75 9c-19 111 -36 221 -54 331z'},
+  sharp:{u:'E262',w:197,d:'M136 186v169h17v-164l44 14v-91l-44 -14v-165l44 12v-91l-44 -13v-155h-17v150l-76 -22v-155h-17v149l-43 -13v90l43 14v167l-43 -14v92l43 13v169h17v-163zM60 73v-167l76 22v168z'},
+  flat:{u:'E260',w:198,d:'M20 110c32 16 54 27 93 27c26 0 35 -3 54 -13c13 -7 24 -20 27 -38l4 -25c0 -28 -16 -57 -45 -89c-23 -25 -39 -44 -65 -68l-88 -79v644h20v-359zM90 106c-32 0 -48 -10 -70 -29v-194c31 31 54 59 71 84c21 32 32 59 32 84c0 9 1 16 1 20c0 14 -3 21 -11 30l-8 3z'},
+  natural:{u:'E261',w:157,d:'M0 -188v539h18v-191l139 22v-533h-17v186zM18 -100l122 17v176l-122 -19v-174z'},
+};
+</script>
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const rnd = n => Math.floor(Math.random() * n), pick = a => a[rnd(a.length)];
+let toastT = 0; const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 2400); };
+/* ---------- data ---------- */
+const TASKS = [
+  {id: 'pulse', name: 'Pulse & rhythm', short: 'Rhythm', nc: 'Perform with accuracy; duration', how: 'Clap or tap back four 2-bar patterns (crotchets, quavers, rests). Keep a steady pulse with the click at 80 bpm.',
+   rub: ['Loses the pulse; patterns not reproduced', 'Keeps a pulse; simplest patterns back accurately', 'Steady pulse; three of four patterns accurate', 'All patterns accurate, including rests, with a confident, steady pulse']},
+  {id: 'pitch', name: 'Pitch', short: 'Pitch', nc: 'Perform with accuracy; pitch', how: 'Sing back three short phrases (3–5 notes), then identify higher / lower / same for eight pairs of notes (the student test does this part).',
+   rub: ['Cannot match pitch; higher/lower mostly guessed', 'Matches some notes; hears large differences (a 5th or more)', 'Sings phrases mostly in tune; hears tones and 3rds', 'Sings in tune with a clear sense of the key; hears semitone differences']},
+  {id: 'listen', name: 'Listening — the elements', short: 'Listening', nc: 'Identify and use the interrelated dimensions of music', how: 'Play a 45-second excerpt twice. Ask for tempo (fast/slow), dynamics (loud/quiet, any change), instruments heard, texture (one line or layers) and structure (repeats?).',
+   rub: ['Describes with everyday words only (nice, fast-ish)', 'Names tempo and dynamics correctly; one instrument', 'Uses element vocabulary correctly for most features', 'Precise vocabulary, notices changes over time and gives reasons']},
+  {id: 'notation', name: 'Reading notation', short: 'Notation', nc: 'Use staff notation and other notations', how: 'Name eight notes on the treble stave (student test), then clap a written 2-bar rhythm from a card.',
+   rub: ['No staff-reading; rhythm card not attempted', 'Names lines or spaces with a mnemonic; simple rhythms', 'Names most notes fluently; reads quavers and rests', 'Reads notes and rhythms fluently, including ledger lines']},
+  {id: 'perform', name: 'Performing', short: 'Perform', nc: 'Play and sing confidently in solo and ensemble contexts', how: 'A prepared or on-the-spot 8-bar piece on any instrument or voice, then the same piece with a backing track or a partner.',
+   rub: ['Hesitant; stops and restarts; not in time with others', 'Complete but uneven; follows the ensemble with support', 'Fluent and accurate, in time with the backing', 'Fluent, accurate and expressive; leads or adjusts within the ensemble']},
+  {id: 'compose', name: 'Composing & improvising', short: 'Compose', nc: 'Improvise and compose; extend and develop ideas', how: 'Improvise a 4-bar answer to a 4-bar question on a pentatonic scale, then repeat it and change one thing on purpose.',
+   rub: ['Random notes; cannot repeat what was played', 'A short idea, mostly repeated as played', 'A shaped idea that ends on the home note; a clear change on the repeat', 'Musical ideas with rhythmic interest, developed deliberately (sequence, inversion, dynamics)']},
+];
+const POINTS = [{id: 'baseline', name: 'Autumn baseline'}, {id: 'spring', name: 'Spring'}, {id: 'summer', name: 'Summer'}];
+const BANDS = ['Emerging', 'Developing', 'Secure', 'Excelling'];
+const bandOf = total => total === null ? null : total <= 8 ? 0 : total <= 14 ? 1 : total <= 20 ? 2 : 3;
+let db = {classes: [], cur: null};
+try { const d = JSON.parse(localStorage.getItem('ks3.db') || 'null'); if (d && d.classes) db = d; } catch (_) {}
+const save = () => { try { localStorage.setItem('ks3.db', JSON.stringify(db)); } catch (_) { toast('Could not save — storage is full or blocked'); } };
+const uid = () => Math.random().toString(36).slice(2, 9);
+const curClass = () => db.classes.find(c => c.id === db.cur) || null;
+const scoreOf = (cls, sid, pt, task) => { const v = cls.scores && cls.scores[sid] && cls.scores[sid][pt] ? cls.scores[sid][pt][task] : undefined; return v === undefined ? null : v; };
+const totalOf = (cls, sid, pt) => { let t = 0, n = 0; TASKS.forEach(k => { const v = scoreOf(cls, sid, pt, k.id); if (v !== null) { t += v; n++; } }); return n === TASKS.length ? t : (n ? {partial: t, n} : null); };
+let tab = 'classes', point = 'baseline';
+/* ---------- audio for the student tests ---------- */
+let AC = null; const audio = () => { if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)(); if (AC.state !== 'running') AC.resume().catch(() => {}); return AC; };
+document.addEventListener('pointerdown', () => audio(), true);
+function tone(midi, at, dur, gain) { const c = audio(), t = c.currentTime + at, f = 440 * Math.pow(2, (midi - 69) / 12); const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + 0.02); g.gain.setValueAtTime(gain, t + dur * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = Math.min(6000, f * 4); [-4, 4].forEach(d => { const o = c.createOscillator(); o.type = 'triangle'; o.frequency.value = f; o.detune.value = d; o.connect(lp); o.start(t); o.stop(t + dur + 0.05); }); lp.connect(g); g.connect(c.destination); }
+function click(at, accent) { const c = audio(), t = c.currentTime + at, o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = accent ? 1600 : 1100; g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(accent ? 0.25 : 0.16, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06); o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + 0.08); }
+function clap(at) { const c = audio(), t = c.currentTime + at; const n = c.createBufferSource(); const b = c.createBuffer(1, c.sampleRate * 0.12, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.2); n.buffer = b; const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.8; const g = c.createGain(); g.gain.value = 0.9; n.connect(f); f.connect(g); g.connect(c.destination); n.start(t); }
+/* ---------- rendering ---------- */
+function render() { const m = $('main'); m.innerHTML = ''; [...$('tabs').children].forEach(b => b.classList.toggle('sel', b.dataset.t === tab)); ({classes: renderClasses, assess: renderAssess, results: renderResults, tests: renderTests})[tab](m); }
+function el(html) { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; }
+function renderClasses(m) {
+  const c = curClass();
+  const card = el(`<section class="card"><h2>Classes</h2><p>Each class keeps its students and three assessment points on this device. Use Backup to move it between devices.</p><div class="chips" id="classChips"></div><div class="row"><input type="text" id="newClass" placeholder="New class, e.g. 7Y/Mu2" style="flex:1"><button class="btn" id="bAddClass">Add class</button></div></section>`);
+  m.appendChild(card);
+  const chips = card.querySelector('#classChips');
+  db.classes.forEach(k => { const b = el(`<button class="chip ${k.id === db.cur ? 'sel' : ''}">${esc(k.name)} · ${k.students.length}</button>`); b.addEventListener('click', () => { db.cur = k.id; save(); render(); }); chips.appendChild(b); });
+  if (!db.classes.length) chips.appendChild(el('<span class="foot">No classes yet — add one below.</span>'));
+  card.querySelector('#bAddClass').addEventListener('click', () => { const n = card.querySelector('#newClass').value.trim(); if (!n) return; const k = {id: uid(), name: n, students: [], scores: {}, created: new Date().toISOString()}; db.classes.push(k); db.cur = k.id; save(); render(); });
+  if (!c) return;
+  const sc = el(`<section class="card"><div class="row"><h2 style="flex:1">${esc(c.name)} — students</h2><button class="btn small" id="bRename">Rename</button><button class="btn small danger" id="bDelClass">Delete class</button></div><p>Add names one per line (paste a register), then tap a name to add notes or a target.</p><textarea id="names" placeholder="Amelia Khan&#10;Ben Osei&#10;…"></textarea><div class="row" style="margin-top:6px"><button class="btn primary" id="bAddNames">Add students</button><span class="foot">${c.students.length} in the class</span></div><div class="grid" style="margin-top:8px"><table><thead><tr><th>Student</th><th>Notes / target</th><th></th></tr></thead><tbody id="stuRows"></tbody></table></div></section>`);
+  m.appendChild(sc);
+  sc.querySelector('#bRename').addEventListener('click', () => { const n = prompt('Class name', c.name); if (n && n.trim()) { c.name = n.trim(); save(); render(); } });
+  sc.querySelector('#bDelClass').addEventListener('click', () => { if (!confirm('Delete ' + c.name + ' and all its scores? Take a backup first if you need it.')) return; db.classes = db.classes.filter(k => k !== c); db.cur = db.classes.length ? db.classes[0].id : null; save(); render(); });
+  sc.querySelector('#bAddNames').addEventListener('click', () => { const lines = sc.querySelector('#names').value.split(/\n|,|;/).map(x => x.trim()).filter(Boolean); if (!lines.length) return; lines.forEach(n => { if (!c.students.some(s => s.name.toLowerCase() === n.toLowerCase())) c.students.push({id: uid(), name: n, notes: ''}); }); c.students.sort((a, b) => a.name.localeCompare(b.name)); save(); render(); });
+  const tb = sc.querySelector('#stuRows');
+  c.students.forEach(s => { const tr = el(`<tr><td>${esc(s.name)}</td><td><input type="text" value="${esc(s.notes || '')}" placeholder="SEND, instrument, target…" style="width:100%;min-width:180px;font-weight:500"></td><td><button class="btn small danger">Remove</button></td></tr>`); tr.querySelector('input').addEventListener('change', e => { s.notes = e.target.value; save(); }); tr.querySelector('button').addEventListener('click', () => { if (!confirm('Remove ' + s.name + '?')) return; c.students = c.students.filter(x => x !== s); delete c.scores[s.id]; save(); render(); }); tb.appendChild(tr); });
+}
+function pointChips(onPick) { const d = el('<div class="chips"></div>'); POINTS.forEach(p => { const b = el(`<button class="chip ${p.id === point ? 'sel' : ''}">${p.name}</button>`); b.addEventListener('click', () => { point = p.id; onPick(); }); d.appendChild(b); }); return d; }
+function renderAssess(m) {
+  const c = curClass(); if (!c) { m.appendChild(el('<section class="card"><h2>Assess</h2><p>Pick or create a class first.</p></section>')); return; }
+  const top = el(`<section class="card"><h2>${esc(c.name)} — mark sheet</h2><p>Score each task 0–4 against the rubric (0 = not attempted / no evidence). Tap the task name for the rubric and how to run it. Scores save as you tap.</p></section>`);
+  top.appendChild(pointChips(render)); m.appendChild(top);
+  const rubBox = el('<section class="card" id="rubBox" hidden></section>'); m.appendChild(rubBox);
+  const grid = el('<section class="card grid"><table><thead><tr><th>Student</th>' + TASKS.map(t => `<th><button class="btn small" data-task="${t.id}">${t.short}</button></th>`).join('') + '<th>Total</th><th>Band</th></tr></thead><tbody></tbody></table></section>');
+  m.appendChild(grid);
+  grid.querySelectorAll('button[data-task]').forEach(b => b.addEventListener('click', () => { const t = TASKS.find(x => x.id === b.dataset.task); rubBox.hidden = false; rubBox.innerHTML = `<h2>${t.name}</h2><p><b style="color:var(--ink)">National curriculum:</b> ${t.nc}.<br><b style="color:var(--ink)">How to run it:</b> ${t.how}</p><div class="rubric">${t.rub.map((r, i) => `<div class="rub"><b>${i + 1} · ${BANDS[i]}</b>${r}</div>`).join('')}<div class="foot">4 = Excelling on the mark sheet; 0 = not attempted or no evidence.</div></div>`; rubBox.scrollIntoView({behavior: 'smooth', block: 'nearest'}); }));
+  const tb = grid.querySelector('tbody');
+  if (!c.students.length) tb.appendChild(el('<tr><td colspan="9" class="foot">No students yet — add them under Classes.</td></tr>'));
+  c.students.forEach(s => {
+    const tr = el(`<tr><td>${esc(s.name)}</td></tr>`);
+    TASKS.forEach(t => { const v = scoreOf(c, s.id, point, t.id); const td = el('<td class="num"><span class="score"></span></td>'); const sc = td.querySelector('.score'); for (let i = 0; i <= 4; i++) { const b = el(`<button class="${v === i ? 'sel' : ''}">${i}</button>`); b.addEventListener('click', () => { c.scores[s.id] = c.scores[s.id] || {}; c.scores[s.id][point] = c.scores[s.id][point] || {}; c.scores[s.id][point][t.id] = (v === i) ? undefined : i; if (c.scores[s.id][point][t.id] === undefined) delete c.scores[s.id][point][t.id]; save(); render(); }); sc.appendChild(b); } tr.appendChild(td); });
+    const tot = totalOf(c, s.id, point); const band = typeof tot === 'number' ? bandOf(tot) : null;
+    tr.appendChild(el(`<td class="num">${typeof tot === 'number' ? tot + '/24' : tot ? tot.partial + ' (' + tot.n + '/6)' : '—'}</td>`));
+    tr.appendChild(el(`<td>${band === null ? '<span class="band bx">—</span>' : `<span class="band b${band}">${BANDS[band]}</span>`}</td>`));
+    tb.appendChild(tr);
+  });
+}
+function renderResults(m) {
+  const c = curClass(); if (!c) { m.appendChild(el('<section class="card"><h2>Results</h2><p>Pick or create a class first.</p></section>')); return; }
+  const done = POINTS.map(p => c.students.filter(s => typeof totalOf(c, s.id, p.id) === 'number').length);
+  const sum = el(`<section class="card"><h2>${esc(c.name)} — progress</h2><p>Totals out of 24 at each point; the arrow shows movement since the baseline. Bands: Emerging 0–8, Developing 9–14, Secure 15–20, Excelling 21–24.</p></section>`);
+  m.appendChild(sum);
+  // distribution bars for the current point
+  const dist = [0, 0, 0, 0]; c.students.forEach(s => { const t = totalOf(c, s.id, point); if (typeof t === 'number') dist[bandOf(t)]++; });
+  const max = Math.max(1, ...dist);
+  const bars = el(`<section class="card"><div class="row"><h2 style="flex:1">Band spread</h2></div></section>`);
+  bars.appendChild(pointChips(render));
+  bars.appendChild(el('<div class="bars">' + dist.map((n, i) => `<div style="height:${Math.round(n / max * 100)}%;background:${['var(--bad)', 'var(--warn)', 'var(--green)', 'var(--acc)'][i]}"><span>${n}</span><i>${BANDS[i]}</i></div>`).join('') + '</div><div class="foot" style="margin-top:18px">' + done.map((n, i) => `${POINTS[i].name}: ${n}/${c.students.length} assessed`).join(' · ') + '</div>'));
+  m.appendChild(bars);
+  const tbl = el('<section class="card grid"><table><thead><tr><th>Student</th>' + POINTS.map(p => `<th>${p.name}</th>`).join('') + '<th>Change</th><th>Weakest area</th></tr></thead><tbody></tbody></table></section>');
+  const tb = tbl.querySelector('tbody');
+  c.students.forEach(s => {
+    const tots = POINTS.map(p => totalOf(c, s.id, p.id));
+    const first = tots[0], last = [...tots].reverse().find(t => typeof t === 'number');
+    const change = typeof first === 'number' && typeof last === 'number' && last !== first ? last - first : null;
+    // weakest area at the latest assessed point
+    const lp = [...POINTS].reverse().find(p => typeof totalOf(c, s.id, p.id) === 'number');
+    let weak = '—'; if (lp) { let lo = 9, name = ''; TASKS.forEach(t => { const v = scoreOf(c, s.id, lp.id, t.id); if (v !== null && v < lo) { lo = v; name = t.short; } }); weak = name + ' (' + lo + ')'; }
+    tb.appendChild(el(`<tr><td>${esc(s.name)}</td>${tots.map(t => `<td class="num">${typeof t === 'number' ? `${t} <span class="band b${bandOf(t)}">${BANDS[bandOf(t)][0]}</span>` : t ? t.partial + '*' : '—'}</td>`).join('')}<td class="num">${change === null ? '' : `<span class="arrow ${change > 0 ? 'up' : 'dn'}">${change > 0 ? '▲ +' : '▼ '}${change}</span>`}</td><td>${weak}</td></tr>`));
+  });
+  m.appendChild(tbl);
+  m.appendChild(el('<section class="card"><p>* partial — not every task scored yet. Export CSV puts every task score, total and band for all three points in one sheet for the school data drop.</p></section>'));
+}
+/* ---------- student tests ---------- */
+const test = {kind: null, i: 0, n: 0, right: 0, q: null, log: []};
+function renderTests(m) {
+  const intro = el(`<section class="card"><h2>Student tests</h2><p>Three short, objective checks a student can do on their own device (headphones on). Each gives a score out of 8 and the rubric score it suggests, for the teacher to enter on the mark sheet. Nothing is stored — write the score down.</p><div class="row"><button class="btn primary" data-k="pitch">Pitch: higher or lower</button><button class="btn primary" data-k="rhythm">Rhythm: same or different</button><button class="btn primary" data-k="notation">Notation: name the note</button></div></section>`);
+  intro.querySelectorAll('button').forEach(b => b.addEventListener('click', () => startTest(b.dataset.k)));
+  m.appendChild(intro);
+  if (test.kind) { const box = el('<section class="card" id="testBox"></section>'); m.appendChild(box); renderQuestion(box); }
+}
+function startTest(k) { test.kind = k; test.i = 0; test.n = 8; test.right = 0; test.log = []; nextQ(); render(); setTimeout(() => { const b = $('testBox'); if (b) b.scrollIntoView({behavior: 'smooth'}); }, 50); }
+const PITCH_GAPS = [7, 5, 4, 3, 2, 2, 1, 1];
+const RHY = [[1, 1, 1, 1], [1, 1, 2], [2, 1, 1], [1, 2, 1], [0.5, 0.5, 1, 1, 1], [1, 0.5, 0.5, 1, 1], [1, 1, 0.5, 0.5, 1], [2, 2], [1, 1, 1, 0.5, 0.5], [0.5, 0.5, 0.5, 0.5, 1, 1]];
+function nextQ() {
+  const i = test.i;
+  if (test.kind === 'pitch') { const gap = PITCH_GAPS[i]; const base = 60 + rnd(12); const r = rnd(3); const a = base, b = r === 0 ? base + gap : r === 1 ? base - gap : base; test.q = {a, b, ans: r === 0 ? 'higher' : r === 1 ? 'lower' : 'same'}; }
+  else if (test.kind === 'rhythm') { const a = pick(RHY); const same = Math.random() < 0.5; let b = a; if (!same) { do { b = pick(RHY); } while (b === a); } test.q = {a, b, ans: same ? 'same' : 'different'}; }
+  else { const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']; const di = i < 5 ? 28 + rnd(11) : 26 + rnd(17); test.q = {di, ans: LETTERS[((di % 7) + 7) % 7]}; }
+  test.answered = false;
+}
+function playQ() {
+  const q = test.q;
+  if (test.kind === 'pitch') { tone(q.a, 0.05, 0.7, 0.25); tone(q.b, 0.95, 0.7, 0.25); }
+  else if (test.kind === 'rhythm') { const spb = 0.55; let t = 0.05; for (let k = 0; k < 4; k++) click(t + k * spb, k === 0); t += 4 * spb; q.a.forEach(d => { clap(t); t += d * spb; }); t += spb * 1.5; for (let k = 0; k < 4; k++) click(t + k * spb, k === 0); t += 4 * spb; q.b.forEach(d => { clap(t); t += d * spb; }); }
+}
+function renderQuestion(box) {
+  const k = test.kind, q = test.q;
+  if (test.i >= test.n) { const r = test.right; const rub = r >= 8 ? 4 : r >= 6 ? 3 : r >= 4 ? 2 : r >= 2 ? 1 : 0; box.innerHTML = `<h2>${k === 'pitch' ? 'Pitch' : k === 'rhythm' ? 'Rhythm' : 'Notation'} — finished</h2><div class="big">${r} / 8</div><p>Suggested rubric score: <b style="color:var(--ink)">${rub} · ${rub ? BANDS[rub - 1] : 'Not yet'}</b> for the ${k === 'pitch' ? 'Pitch' : k === 'rhythm' ? 'Pulse & rhythm' : 'Reading notation'} task. Tell your teacher, or show them this screen.</p><div class="row"><button class="btn primary" id="bAgain">Do it again</button><button class="btn" id="bBackT">Back to tests</button></div>`; box.querySelector('#bAgain').addEventListener('click', () => startTest(k)); box.querySelector('#bBackT').addEventListener('click', () => { test.kind = null; render(); }); return; }
+  const title = k === 'pitch' ? 'Two notes. Was the second one higher, lower or the same?' : k === 'rhythm' ? 'Two clapped patterns, each after four clicks. Same or different?' : 'What is the name of this note?';
+  box.innerHTML = `<div class="row"><h2 style="flex:1">${k === 'pitch' ? 'Pitch' : k === 'rhythm' ? 'Rhythm' : 'Notation'} · ${test.i + 1} of ${test.n}</h2><span class="foot">${test.right} right so far</span></div><p>${title}</p>`;
+  if (k === 'notation') { const cv = el('<canvas id="stave" width="600" height="120"></canvas>'); box.appendChild(cv); drawStave(cv, q.di); }
+  else { const b = el('<button class="btn primary" id="bHear">▶ Hear it</button>'); b.addEventListener('click', playQ); box.appendChild(b); }
+  const opts = k === 'pitch' ? [['higher', 'Higher'], ['lower', 'Lower'], ['same', 'Same']] : k === 'rhythm' ? [['same', 'Same'], ['different', 'Different']] : ['C', 'D', 'E', 'F', 'G', 'A', 'B'].map(x => [x, x]);
+  const grid = el(`<div class="opts ${k === 'notation' ? 'seven' : ''}"></div>`);
+  opts.forEach(o => { const b = el(`<button>${o[1]}</button>`); b.addEventListener('click', () => { if (test.answered) return; test.answered = true; const ok = o[0] === q.ans; if (ok) test.right++; [...grid.children].forEach((x, j) => { if (opts[j][0] === q.ans) x.classList.add('right'); else if (x === b) x.classList.add('wrong'); }); setTimeout(() => { test.i++; nextQ(); renderQuestion(box); if (test.i < test.n && k !== 'notation') setTimeout(playQ, 250); }, ok ? 500 : 1100); }); grid.appendChild(b); });
+  box.appendChild(grid);
+  if (k !== 'notation' && test.i === 0 && !test.playedFirst) { test.playedFirst = true; setTimeout(playQ, 300); }
+}
+/* engraved stave for the notation test (Leipzig glyph outlines) */
+const GLY = {}; for (const k in GLY_SRC) GLY[k] = {p: new Path2D(GLY_SRC[k].d), w: GLY_SRC[k].w};
+function drawStave(cv, di) {
+  const dpr = window.devicePixelRatio || 1, W = cv.clientWidth || 600, H = 120; cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+  const sp = 9, gs = sp / 250, bottom = 84, yOf = d => bottom - (d - 30) * sp / 2;
+  c.strokeStyle = 'rgba(238,240,242,.6)'; c.lineWidth = 1; for (let i = 0; i < 5; i++) { const y = Math.round(bottom - i * sp) + 0.5; c.beginPath(); c.moveTo(10, y); c.lineTo(W - 10, y); c.stroke(); }
+  c.fillStyle = '#EEF0F2'; c.save(); c.translate(16, yOf(32)); c.scale(gs, -gs); c.fill(GLY.clefG.p); c.restore();
+  const x = W * 0.5, hw = GLY.headW.w * gs;
+  for (let d = 28; d >= di; d -= 2) { const y = Math.round(yOf(d)) + 0.5; c.beginPath(); c.moveTo(x - sp * .4, y); c.lineTo(x + hw + sp * .4, y); c.stroke(); }
+  for (let d = 40; d <= di; d += 2) { const y = Math.round(yOf(d)) + 0.5; c.beginPath(); c.moveTo(x - sp * .4, y); c.lineTo(x + hw + sp * .4, y); c.stroke(); }
+  c.fillStyle = '#FFD84D'; c.save(); c.translate(x, yOf(di)); c.scale(gs, -gs); c.fill(GLY.headW.p); c.restore();
+}
+/* ---------- export / backup ---------- */
+function esc(s) { return String(s).replace(/[&<>"]/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[ch])); }
+function download(name, text, type) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500); }
+$('bExport').addEventListener('click', () => { const c = curClass(); if (!c) { toast('Pick a class first'); return; } const head = ['Student', 'Notes'].concat(...POINTS.map(p => TASKS.map(t => p.name + ' ' + t.short).concat([p.name + ' total', p.name + ' band']))); const rows = c.students.map(s => { const cells = [s.name, s.notes || '']; POINTS.forEach(p => { TASKS.forEach(t => { const v = scoreOf(c, s.id, p.id, t.id); cells.push(v === null ? '' : v); }); const tot = totalOf(c, s.id, p.id); cells.push(typeof tot === 'number' ? tot : ''); cells.push(typeof tot === 'number' ? BANDS[bandOf(tot)] : ''); }); return cells; }); const csv = [head].concat(rows).map(r => r.map(x => '"' + String(x).replace(/"/g, '""') + '"').join(',')).join('\n'); download(c.name.replace(/[^\w-]+/g, '_') + '-music-baseline.csv', csv, 'text/csv'); });
+$('bBackup').addEventListener('click', () => download('music-baseline-backup-' + new Date().toISOString().slice(0, 10) + '.json', JSON.stringify(db, null, 1), 'application/json'));
+$('bRestore').addEventListener('click', () => $('restoreFile').click());
+$('restoreFile').addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; try { const d = JSON.parse(await f.text()); if (!d.classes) throw new Error('not a backup'); if (!confirm('Replace everything on this device with the backup (' + d.classes.length + ' classes)?')) return; db = d; save(); render(); toast('Restored'); } catch (_) { toast('That file is not a Music Baseline backup'); } e.target.value = ''; });
+$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; tab = b.dataset.t; render(); });
+render();
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+</script>
+</body>
+</html>

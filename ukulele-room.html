@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101315">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="robots" content="noindex,nofollow">
+<title>Ukulele Room</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style>
+:root{--bg:#101315;--panel:#171B1E;--panel2:#1D2226;--line:#2A3136;--ink:#EEF0F2;--mut:#8E98A3;--acc:#FF7F6E;--accL:#FFA899;--accD:#C95A4A;--good:#58D68D;--bad:#FF6B6B;--teal:#4FB3A6}
+*{box-sizing:border-box}
+body{margin:0;min-height:100dvh;background:var(--bg);color:var(--ink);font-family:'Avenir Next','Segoe UI',system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+#appBack{display:flex;align-items:center;gap:7px;height:calc(44px + env(safe-area-inset-top,0px));padding:env(safe-area-inset-top,0px) 14px 0 12px;background:#0C0E10;color:var(--ink);font:700 14px/1 system-ui,sans-serif;text-decoration:none;border-bottom:1px solid var(--line)}
+#appBack .chev{font-size:19px;line-height:1;margin-top:-2px;color:var(--acc)}
+.psLink{position:absolute;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:99999;font:700 12px/1 system-ui,sans-serif;color:var(--acc);text-decoration:none;border:1px solid var(--line);border-radius:999px;padding:7px 10px;background:#0C0E10}
+header{display:flex;align-items:center;gap:8px;padding:10px 14px 4px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:20px;letter-spacing:-.02em;color:var(--acc)}
+.logo small{font-weight:600;font-size:11px;color:var(--mut);margin-left:6px}
+.grades{display:flex;gap:5px;padding:6px 14px 4px;overflow-x:auto;scrollbar-width:none}
+.grades::-webkit-scrollbar{display:none}
+.grades button{flex:none;background:var(--panel2);border:1px solid var(--line);color:var(--mut);border-radius:10px;padding:8px 11px;font:700 13px/1 inherit;font-family:inherit;min-height:36px;cursor:pointer}
+.grades button.on{background:var(--acc);border-color:var(--acc);color:#15130E}
+.tabs{display:flex;gap:2px;margin:6px 14px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{background:none;border:none;font-family:inherit;text-transform:uppercase;letter-spacing:.14em;font-size:12px;font-weight:700;padding:10px 12px;color:var(--mut);border-bottom:2px solid transparent;white-space:nowrap;cursor:pointer}
+.tabs button.on{color:var(--acc);border-bottom-color:var(--acc);background:#22171A}
+main{padding:10px 14px 40px}
+.panel{display:none}.panel.on{display:block}
+h3{margin:14px 0 4px;font-size:15px}
+p.lead{margin:0 0 10px;color:var(--mut);font-size:13px;line-height:1.45;max-width:64ch}
+.lab{font:700 11px/1 inherit;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:10px 0 5px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:7px 11px;font:600 12.5px/1 inherit;font-family:inherit;color:var(--mut);cursor:pointer;min-height:32px}
+.chip.sel{border-color:var(--acc);color:var(--ink)}
+.chip.req{border-color:#3F5B57;color:var(--teal)}
+.chip.req.sel{border-color:var(--teal);color:var(--ink);background:#15302C}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:11px;min-height:38px;padding:8px 13px;font:700 13.5px/1 inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(180deg,var(--accL),var(--accD));border-color:var(--acc);color:#15130E}
+.btn.on{border-color:var(--acc);color:var(--acc)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:8px 0}
+.scale-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;padding:12px 0 8px;flex-wrap:wrap}
+.big{font-size:32px;font-weight:800;line-height:1;letter-spacing:.01em}
+.spelt{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:13px;margin-top:6px;white-space:pre-wrap}
+.degline{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:12px;color:var(--mut);white-space:pre-wrap}
+.use{color:var(--mut);font-size:12.5px;margin-top:4px;max-width:60ch}
+.fb-scroll{overflow-x:auto;padding:6px 0 10px;-webkit-overflow-scrolling:touch}
+.fb-svg{display:block}
+.fb-note{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px;font-weight:700}
+.fb-fretnum{fill:#7A6C61;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px}
+.fb-str{fill:#8E98A3;font-family:'JetBrains Mono',ui-monospace,Menlo,monospace;font-size:11px}
+.boxes{display:flex;gap:14px;flex-wrap:wrap;padding:6px 0}
+.chordbox{width:132px;text-align:center}
+.chordbox svg{display:block;width:100%}
+.chordbox .cap{font-weight:800;font-size:16px;margin:4px 0 0}
+.chordbox .sub{color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.1em}
+.chordbox button{width:100%;margin-top:6px}
+.note{color:var(--mut);font-size:13px;line-height:1.45;max-width:60ch;margin:8px 0}
+.strum{display:grid;gap:4px;margin:10px 0}
+.strum .cells{display:grid;gap:3px}
+.strum .cell{background:var(--panel2);border:1px solid var(--line);border-radius:8px;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;font:800 18px/1 inherit}
+.strum .cell small{font:600 10px/1 inherit;color:var(--mut);margin-top:5px}
+.strum .cell.beat{border-color:#3A4350}
+.strum .cell.now{background:#3A2A26;border-color:var(--acc)}
+.strum .cell.rest{color:var(--mut);font-weight:600}
+.strum .cell.mute{color:var(--bad)}
+.stepper{display:flex;align-items:center;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.stepper button{background:#000;color:#fff;border:none;width:44px;height:38px;font-size:20px;font-family:inherit}
+.stepper b{min-width:62px;text-align:center;font-size:16px}
+.exam h3{margin-top:16px}
+.exam ul{margin:4px 0 0 18px;padding:0;color:var(--ink);font-size:13.5px;line-height:1.55}
+.exam li b{color:var(--acc)}
+.mnome{text-align:center;padding:20px 0}
+.mnome .bpm{font-size:64px;font-weight:800;line-height:1}
+.mnome .dots{display:flex;gap:8px;justify-content:center;margin:14px 0}
+.mnome .dots i{width:16px;height:16px;border-radius:50%;background:#2A3136}
+.mnome .dots i.on{background:var(--acc);box-shadow:0 0 12px var(--acc)}
+.mnome .dots i.one.on{background:#fff;box-shadow:0 0 12px #fff}
+#toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:9;max-width:90vw}
+#toast.on{opacity:.95}
+</style>
+</head>
+<body>
+<a id="appBack" href="index.html"><span class="chev">‹</span>All apps</a><a class="psLink" href="practice-schedule.html?app=ukulele-room&name=Ukulele%20Room" target="_blank" rel="noopener">Schedule</a>
+<header><div class="logo">Ukulele Room<small>Anthos ladder · Debut to Grade 8 · re-entrant G C E A</small></div></header>
+<div class="grades" id="grades"></div>
+<nav class="tabs" id="tabs"><button data-t="scales" class="on">Scales</button><button data-t="arps">Arpeggios</button><button data-t="chords">Chords</button><button data-t="strum">Strumming</button><button data-t="exam">Exam</button><button data-t="mnome">Metronome</button></nav>
+<main>
+  <section class="panel on" id="p-scales">
+    <p class="lead" id="scalesLead"></p>
+    <div class="lab">This grade asks for</div><div class="chips" id="scaleReqs"></div>
+    <div class="lab">Scale</div><div class="chips" id="scaleTypes"></div>
+    <div class="lab">Root</div><div class="chips" id="scaleRoots"></div>
+    <div class="lab">Fingering</div><div class="chips" id="scaleFings"></div>
+    <div id="scaleView"></div>
+  </section>
+  <section class="panel" id="p-arps">
+    <p class="lead" id="arpsLead"></p>
+    <div class="lab">This grade asks for</div><div class="chips" id="arpReqs"></div>
+    <div class="lab">Arpeggio</div><div class="chips" id="arpTypes"></div>
+    <div class="lab">Root</div><div class="chips" id="arpRoots"></div>
+    <div class="lab">Fingering</div><div class="chips" id="arpFings"></div>
+    <div id="arpView"></div>
+  </section>
+  <section class="panel" id="p-chords">
+    <p class="lead" id="chordsLead"></p>
+    <div class="lab">This grade asks for</div><div class="chips" id="chordReqs"></div>
+    <div class="lab">Chord</div><div class="chips" id="chordTypes"></div>
+    <div class="lab">Root</div><div class="chips" id="chordRoots"></div>
+    <div id="chordView"></div>
+  </section>
+  <section class="panel" id="p-strum">
+    <p class="lead" id="strumLead"></p>
+    <div class="lab">Pattern</div><div class="chips" id="strumPats"></div>
+    <div class="lab">Chords</div><div class="chips" id="strumChords"></div>
+    <div class="row"><button class="btn primary" id="strumPlay">▶ Play</button><div class="stepper"><button id="stDn">−</button><b id="stBpm">80</b><button id="stUp">+</button></div><button class="btn" id="strumClick">Click: on</button></div>
+    <div id="strumView"></div>
+  </section>
+  <section class="panel exam" id="p-exam"><div id="examView"></div></section>
+  <section class="panel" id="p-mnome">
+    <div class="mnome"><div class="bpm" id="mBpm">80</div><div class="dots" id="mDots"></div>
+      <div class="row" style="justify-content:center"><button class="btn" id="mDn">−5</button><button class="btn" id="mDn1">−1</button><button class="btn primary" id="mGo">Start</button><button class="btn" id="mUp1">+1</button><button class="btn" id="mUp">+5</button></div>
+      <div class="row" style="justify-content:center"><div class="chips" id="mSig"><button class="chip sel" data-n="4">4/4</button><button class="chip" data-n="3">3/4</button><button class="chip" data-n="2">2/4</button><button class="chip" data-n="6">6/8</button></div></div>
+      <p class="note" style="margin:10px auto 0;text-align:center">Exam tempos: Debut 65 · Grade 1 70 · Grade 2 80 · Grade 3 90 · Grades 4 80 · 5 90 · 6–8 100. Groups A and B start after four clicks.</p></div>
+  </section>
+</main>
+<div id="toast"></div>
+<script>
+/* ================= theory ================= */
+const $ = id => document.getElementById(id);
+const pc = m => ((m % 12) + 12) % 12;
+const OPEN = [67, 60, 64, 69];              // s0 = 4th string G4 (re-entrant), s1 = C4, s2 = E4, s3 = A4
+const STRN = ['G', 'C', 'E', 'A'];          // by string index; the 1st string is A
+const MAX_FRET = 15;
+const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B']; const MAJOR = [0, 2, 4, 5, 7, 9, 11];
+const SHARP = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'], FLAT = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B'];
+const FLAT_ROOTS = [1, 3, 5, 8, 10];        // keys we spell with flats by default
+const rootName = r => (FLAT_ROOTS.includes(r) ? FLAT : SHARP)[r];
+const SCALES = {
+  maj:     {name: 'Major', steps: [0, 2, 4, 5, 7, 9, 11], letters: [0, 1, 2, 3, 4, 5, 6], use: 'major chords, maj7, most pop melodies'},
+  natmin:  {name: 'Natural minor', steps: [0, 2, 3, 5, 7, 8, 10], letters: [0, 1, 2, 3, 4, 5, 6], use: 'minor chords, m7 — the sad one'},
+  majpent: {name: 'Major pentatonic', steps: [0, 2, 4, 7, 9], letters: [0, 1, 2, 4, 5], use: 'major keys, country, island songs'},
+  minpent: {name: 'Minor pentatonic', steps: [0, 3, 5, 7, 10], letters: [0, 2, 3, 4, 6], use: 'rock, blues, minor keys'},
+  blues:   {name: 'Blues', steps: [0, 3, 5, 6, 7, 10], letters: [0, 2, 3, 3, 4, 6], use: 'blues and rock solos'},
+  harmmin: {name: 'Harmonic minor', steps: [0, 2, 3, 5, 7, 8, 11], letters: [0, 1, 2, 3, 4, 5, 6], use: 'minor keys with a major V chord'},
+  melmin:  {name: 'Melodic minor', steps: [0, 2, 3, 5, 7, 9, 11], letters: [0, 1, 2, 3, 4, 5, 6], use: 'jazz minor — m(maj7)'},
+  dorian:  {name: 'Dorian', steps: [0, 2, 3, 5, 7, 9, 10], letters: [0, 1, 2, 3, 4, 5, 6], use: 'm7 chords, funk and folk minor'},
+  mixo:    {name: 'Mixolydian', steps: [0, 2, 4, 5, 7, 9, 10], letters: [0, 1, 2, 3, 4, 5, 6], use: 'dominant 7 chords'},
+  lydian:  {name: 'Lydian', steps: [0, 2, 4, 6, 7, 9, 11], letters: [0, 1, 2, 3, 4, 5, 6], use: 'maj7#11 — dreamy major'},
+  phryg:   {name: 'Phrygian', steps: [0, 1, 3, 5, 7, 8, 10], letters: [0, 1, 2, 3, 4, 5, 6], use: 'Spanish minor, m7 with b9'},
+  phrygdom:{name: 'Phrygian dominant', steps: [0, 1, 4, 5, 7, 8, 10], letters: [0, 1, 2, 3, 4, 5, 6], use: 'V7 in a minor key, flamenco'},
+  chrom:   {name: 'Chromatic', steps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], letters: [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6], use: 'every note — passing tones'},
+  whole:   {name: 'Whole tone', steps: [0, 2, 4, 6, 8, 10], letters: [0, 1, 2, 3, 4, 5], use: 'augmented and 7#5 chords'},
+  dim:     {name: 'Diminished (W-H)', steps: [0, 2, 3, 5, 6, 8, 9, 11], letters: [0, 1, 2, 3, 4, 5, 5, 6], use: 'dim7 chords'},
+  alt:     {name: 'Altered', steps: [0, 1, 3, 4, 6, 8, 10], letters: [0, 1, 2, 2, 3, 5, 6], use: 'altered dominants (7#9, 7b13)'},
+};
+const CHORDS = {
+  maj:  {name: 'Major', suffix: '', f: [0, 4, 7]}, min: {name: 'Minor', suffix: 'm', f: [0, 3, 7]}, dim: {name: 'Diminished', suffix: 'dim', f: [0, 3, 6]}, aug: {name: 'Augmented', suffix: 'aug', f: [0, 4, 8]},
+  sus2: {name: 'Sus2', suffix: 'sus2', f: [0, 2, 7]}, sus4: {name: 'Sus4', suffix: 'sus4', f: [0, 5, 7]},
+  dom7: {name: 'Dominant 7', suffix: '7', f: [0, 4, 7, 10]}, maj7: {name: 'Major 7', suffix: 'maj7', f: [0, 4, 7, 11]}, min7: {name: 'Minor 7', suffix: 'm7', f: [0, 3, 7, 10]},
+  m7b5: {name: 'Minor 7b5', suffix: 'm7b5', f: [0, 3, 6, 10]}, dim7: {name: 'Diminished 7', suffix: 'dim7', f: [0, 3, 6, 9]}, min6: {name: 'Minor 6', suffix: 'm6', f: [0, 3, 7, 9]}, maj6: {name: 'Major 6', suffix: '6', f: [0, 4, 7, 9]},
+  dom9: {name: 'Dominant 9', suffix: '9', f: [0, 4, 7, 10, 14]}, min9: {name: 'Minor 9', suffix: 'm9', f: [0, 3, 7, 10, 14]}, maj9: {name: 'Major 9', suffix: 'maj9', f: [0, 4, 7, 11, 14]},
+  dom7add4: {name: 'Dominant 7 add 4', suffix: '7add4', f: [0, 4, 5, 7, 10]},
+  '7s5': {name: 'Dominant 7#5', suffix: '7#5', f: [0, 4, 8, 10]}, '7b5': {name: 'Dominant 7b5', suffix: '7b5', f: [0, 4, 6, 10]}, '7s9': {name: 'Dominant 7#9', suffix: '7#9', f: [0, 4, 7, 10, 15]}, '7b9': {name: 'Dominant 7b9', suffix: '7b9', f: [0, 4, 7, 10, 13]},
+  mmaj9: {name: 'Minor/major 9', suffix: 'm(maj9)', f: [0, 3, 7, 11, 14]},
+};
+const IV_LETTER = {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 3, 6: 3, 7: 4, 8: 5, 9: 5, 10: 6, 11: 6, 12: 0, 13: 1, 14: 1, 15: 2, 16: 2};
+function spell(rootPc, letters, steps) {   // -> [{pc, name, deg}]
+  const rn = rootName(rootPc); const rl = LETTERS.indexOf(rn[0]);
+  return steps.map((st, i) => { const li = letters[i]; const letter = ((rl + li) % 7 + 7) % 7; const p = pc(rootPc + st);
+    let acc = p - MAJOR[letter]; acc = ((acc + 6) % 12 + 12) % 12 - 6; const name = Math.abs(acc) <= 2 ? LETTERS[letter] + (acc > 0 ? '#'.repeat(acc) : 'b'.repeat(-acc)) : SHARP[p];
+    const dacc = st - MAJOR[li % 7] - 12 * Math.floor(li / 7); return {pc: p, name, deg: (dacc === 0 ? '' : dacc > 0 ? '#'.repeat(dacc) : 'b'.repeat(-dacc)) + (li + 1)}; });
+}
+const nameMap = sp => { const m = {}; sp.forEach(n => m[n.pc] = n.name); return m; };
+const degMap = sp => { const m = {}; sp.forEach(n => m[n.pc] = n.deg); return m; };
+
+/* ================= fingerings ================= */
+// notes of a scale ascending from a root, as midi numbers
+function ascending(rootMidi, steps, count) { const out = []; let oct = 0; while (out.length < count) { steps.forEach(s => { if (out.length < count) out.push(rootMidi + s + 12 * oct); }); oct++; } return out; }
+function lowestOn(s, pcWanted) { let f = 0; while (pc(OPEN[s] + f) !== pcWanted) f++; return f; }
+// sequential across strings: each note goes to the current string while its fret fits the window, then the next string
+function sequential(midis, strings, lo, hi, tail) { const g = []; let k = 0;
+  for (const m of midis) { let placed = false; while (k < strings.length) { const f = m - OPEN[strings[k]]; if (f >= 0 && f <= hi) { g.push({s: strings[k], fret: f, midi: m}); placed = true; break; } if (f < 0) return g; k++; }
+    if (!placed) { if (!tail) break; const s = strings[strings.length - 1]; const f = m - OPEN[s]; if (f < 0 || f > MAX_FRET) break; g.push({s, fret: f, midi: m}); k = strings.length - 1; } }   // past the last string the run carries on up it
+  return g; }
+// position shape: one octave (or two if they fit) from the root on the C string, climbing C → E → A
+function boxScale(rootPc, steps, octaves) {
+  // start where the root sits lowest: the C string climbs C → E → A, the E string climbs E → A, and a root on the open-ish G string climbs G → A
+  const cands = [[1, lowestOn(1, rootPc)], [2, lowestOn(2, rootPc)], [0, lowestOn(0, rootPc)]].map(([s, f]) => ({s, f, cost: f + (s === 0 ? 1.5 : s === 2 ? 0.5 : 0)})).sort((a, b) => a.cost - b.cost);
+  const st = cands[0]; const order = st.s === 1 ? [1, 2, 3] : st.s === 2 ? [2, 3] : [0, 3]; const lo = Math.max(0, st.f - 1), hi = lo + 5;
+  const midis = ascending(OPEN[st.s] + st.f, steps, steps.length * (octaves || 1) + 1); return sequential(midis, order, lo, hi, true); }
+// everything the scale has inside a fret window, C E A strings, ascending — for "three positions" and "four positions"
+function windowScale(rootPc, steps, lo, hi) { const set = new Set(steps.map(s => pc(rootPc + s))); const g = [];
+  [1, 2, 3].forEach(s => { for (let f = lo; f <= hi; f++) if (set.has(pc(OPEN[s] + f))) g.push({s, fret: f, midi: OPEN[s] + f}); }); return g.sort((a, b) => a.midi - b.midi || a.s - b.s); }
+// one string, one octave (the "linear pattern")
+function linear(rootPc, steps, s) { let f0 = lowestOn(s, rootPc); if (f0 + 12 > MAX_FRET) f0 = Math.max(0, f0 - 12); const midis = ascending(OPEN[s] + f0, steps, steps.length + 1); return midis.filter(m => m - OPEN[s] <= MAX_FRET).map(m => ({s, fret: m - OPEN[s], midi: m})); }
+// two strings (3 & 4, or any pair): ascending across them, window 0–7
+function twoStrings(rootPc, steps, strings) { const s0 = strings[0]; const f0 = lowestOn(s0, rootPc); const midis = ascending(OPEN[s0] + f0, steps, steps.length * 2 + 1); return sequential(midis, strings, 0, Math.max(7, f0 + 4)); }
+// campanella: consecutive notes on different strings, open strings wherever possible, so everything rings into everything
+function campanella(rootPc, steps, octaves) { const f0 = lowestOn(1, rootPc); const midis = ascending(OPEN[1] + f0, steps, steps.length * (octaves || 1) + 1); const g = []; let prev = -1;
+  for (const m of midis) { let best = null; for (let s = 0; s < 4; s++) { const f = m - OPEN[s]; if (f < 0 || f > 7) continue; const cost = f + (f === 0 ? -2 : 0) + (s === prev ? 6 : 0); if (!best || cost < best.cost) best = {s, fret: f, midi: m, cost}; }
+    if (!best) continue; prev = best.s; g.push({s: best.s, fret: best.fret, midi: best.midi}); } return g; }
+// partial scale in 3rds or 6ths on two strings: pairs of scale notes, the lower on one string, the upper a diatonic interval above on another
+function intervals(rootPc, steps, gap, strings) { const sp = spell(rootPc, SCALES.maj.letters.slice(0, steps.length), steps); const low = strings[0], high = strings[1]; const f0 = lowestOn(low, rootPc); const base = ascending(OPEN[low] + f0, steps, steps.length + 1); const pairs = [];
+  base.forEach((m, i) => { const all = ascending(OPEN[low] + f0, steps, steps.length * 3); const up = all[i + gap]; if (up === undefined) return; const fl = m - OPEN[low], fh = up - OPEN[high]; if (fl < 0 || fl > MAX_FRET || fh < 0 || fh > MAX_FRET) return; pairs.push([{s: low, fret: fl, midi: m}, {s: high, fret: fh, midi: up}]); }); return pairs; }
+// arpeggios: chord tones ascending from the root on the C string, one octave plus the top root (or a compound 10th)
+function arpBox(rootPc, formula, span) { const f0 = lowestOn(1, rootPc); const base = OPEN[1] + f0; const tones = formula.map(iv => pc(iv)); const midis = []; for (let m = base; m <= base + (span || 12); m++) if (tones.includes(pc(m - base))) midis.push(m);
+  const lo = Math.max(0, f0 - 1); return sequential(midis, [1, 2, 3], lo, lo + 5, true); }
+// "on four strings": the same tones but one note per string, G string included, highest available so all four ring
+function arpFourStrings(rootPc, formula) { const tones = formula.map(iv => pc(iv)); const g = []; [1, 2, 3, 0].forEach(s => { for (let f = 0; f <= 7; f++) if (tones.includes(pc(OPEN[s] + f - rootPc)) && !g.some(x => x.s === s)) { g.push({s, fret: f, midi: OPEN[s] + f}); break; } }); return g.sort((a, b) => a.midi - b.midi); }
+function chromLinear(rootPc, s) { const f0 = lowestOn(s, rootPc); const out = []; for (let f = f0; f <= Math.min(MAX_FRET, f0 + 12); f++) out.push({s, fret: f, midi: OPEN[s] + f}); return out; }
+
+/* ================= chord voicings ================= */
+function voicings(rootPc, formula, opts) {   // all four strings sounding, chord tones only, root and 3rd (and 7th) present
+  opts = opts || {}; const tones = formula.map(iv => pc(iv)); const need = [0]; if (formula.some(iv => pc(iv) === 3 || pc(iv) === 4)) need.push(formula.find(iv => pc(iv) === 3 || pc(iv) === 4) % 12); formula.forEach(iv => { if ([10, 11].includes(pc(iv))) need.push(pc(iv)); if (iv >= 12) need.push(pc(iv)); });
+  const perString = [0, 1, 2, 3].map(s => { const out = []; for (let f = 0; f <= 12; f++) if (tones.includes(pc(OPEN[s] + f - rootPc))) out.push(f); return out; });
+  const out = [];
+  perString[0].forEach(a => perString[1].forEach(b => perString[2].forEach(c => perString[3].forEach(d => { const fr = [a, b, c, d]; const nz = fr.filter(f => f > 0); const lo = nz.length ? Math.min(...nz) : 0, hi = Math.max(...fr); if (hi - lo > 4) return;
+    const got = fr.map((f, s) => pc(OPEN[s] + f - rootPc)); if (!need.every(n => got.includes(n))) return;
+    const fretted = nz.length; let score = hi * 1.2 + fretted * 0.8 - (fr.filter(f => f === 0).length) * 0.6; if (got.filter(x => x === 3 || x === 4).length > 1) score += 2; if (new Set(got).size < Math.min(4, tones.length)) score += 1.5;
+    const midis = fr.map((f, s) => OPEN[s] + f); const bass = Math.min(...midis); out.push({frets: fr, midis, bassIv: pc(bass - rootPc), lo: nz.length ? Math.min(...nz) : 0, hi, score}); }))));
+  out.sort((a, b) => a.score - b.score); const seen = new Set(); return out.filter(v => { const k = v.frets.join(','); if (seen.has(k)) return false; seen.add(k); return true; }); }
+function bestVoicing(rootPc, formula) { return voicings(rootPc, formula)[0]; }
+function twoPositions(rootPc, formula) { const all = voicings(rootPc, formula); if (!all.length) return []; const first = all[0]; const second = all.find(v => Math.abs(v.lo - first.lo) >= 3 && v.hi !== first.hi); return second ? [first, second] : [first]; }
+function inversion(rootPc, formula, bassIv) { const all = voicings(rootPc, formula); return all.find(v => v.bassIv === bassIv) || null; }
+function fingersFor(frets) {   // a lone note takes the finger its fret suggests; a shared lowest fret is a barre; otherwise fingers go in order across the shape
+  const nz = frets.map((f, s) => ({f, s})).filter(x => x.f > 0); const fin = frets.map(() => 0); if (!nz.length) return fin;
+  const lo = Math.min(...nz.map(x => x.f)), hi = Math.max(...nz.map(x => x.f)); const base = hi <= 4 ? 1 : lo;
+  if (nz.length === 1) { fin[nz[0].s] = Math.min(4, nz[0].f - base + 1); return fin; }
+  const atLo = nz.filter(x => x.f === lo); if (atLo.length >= 2 && nz.length > atLo.length && frets.every(f => f >= lo)) { nz.forEach(x => fin[x.s] = x.f === lo ? 1 : Math.min(4, 1 + (x.f - lo))); return fin; }
+  nz.slice().sort((a, b) => a.f - b.f || a.s - b.s).forEach((x, i) => fin[x.s] = Math.min(4, i + 1)); return fin; }
+/* ================= the Anthos ukulele ladder, Debut to Grade 8 (technical work) ================= */
+const R = {E: 4, F: 5, Fs: 6, G: 7, D: 2, Eb: 3, C: 0, A: 9, Bb: 10, Ab: 8, B: 11, Cs: 1, Cm: 0, Dm: 2};
+const GRADES = [
+ {name: 'Debut', tempo: 65, rhythm: 'quarter notes', reqScales: [
+   {t: 'maj', r: 0, f: 'box', l: 'C major'}, {t: 'majpent', r: 0, f: 'box', l: 'C major pentatonic'}, {t: 'minpent', r: 9, f: 'box', l: 'A minor pentatonic'}, {t: 'maj', r: 7, f: 'box', l: 'G major'}],
+  reqArps: [{t: 'maj', r: 0, l: 'C major'}, {t: 'min', r: 9, l: 'A minor'}],
+  reqChords: [{t: 'maj', r: 0}, {t: 'maj', r: 5}, {t: 'maj', r: 7}, {t: 'maj', r: 2}, {t: 'min', r: 9}, {t: 'min', r: 2}], chordNote: 'Open position chords, each strummed once as the examiner asks.',
+  types: ['maj', 'majpent', 'minpent'], arpTypes: ['maj', 'min'], chordTypes: ['maj', 'min'], roots: [0, 7, 9, 5, 2], strumIds: ['down', 'ddu']},
+ {name: 'Grade 1', tempo: 70, rhythm: 'quarter notes', reqScales: [
+   {t: 'maj', r: 0, f: 'box', l: 'C major'}, {t: 'natmin', r: 9, f: 'box', l: 'A natural minor'}, {t: 'maj', r: 7, f: 'box', l: 'G major'}, {t: 'maj', r: 5, f: 'box', l: 'F major'}, {t: 'maj', r: 0, f: 'two34', l: 'C major on strings 3 & 4'}],
+  reqArps: [{t: 'maj', r: 7, l: 'G major'}, {t: 'maj', r: 5, l: 'F major'}, {t: 'min', r: 2, l: 'D minor'}],
+  reqChords: [{t: 'maj', r: 9}, {t: 'maj', r: 2}, {t: 'maj', r: 4}, {t: 'min', r: 2}, {t: 'min', r: 4}, {t: 'min', r: 11}, {t: 'dom7', r: 7}, {t: 'dom7', r: 2}], chordNote: 'Each chord strummed once as directed. G7 and D7 are the root-omitted shapes.',
+  types: ['maj', 'natmin', 'majpent', 'minpent'], arpTypes: ['maj', 'min'], chordTypes: ['maj', 'min', 'dom7'], roots: [0, 7, 9, 5, 2, 4, 11], strumIds: ['down', 'ddu', 'island']},
+ {name: 'Grade 2', tempo: 80, rhythm: 'quarter notes', reqScales: [
+   {t: 'maj', r: 2, f: 'box', l: 'D major'}, {t: 'maj', r: 10, f: 'box', l: 'Bb major'}, {t: 'minpent', r: 0, f: 'box', l: 'C minor pentatonic'}, {t: 'blues', r: 0, f: 'box', l: 'C blues'}, {t: 'maj', r: 0, f: 'two34', l: 'C major on strings 3 & 4'}],
+  reqArps: [{t: 'maj', r: 2, l: 'D major'}, {t: 'min', r: 11, l: 'B minor'}, {t: 'maj', r: 10, l: 'Bb major (either fingering)'}, {t: 'min', r: 7, l: 'G minor (either fingering)'}],
+  reqChords: [{t: 'maj', r: 10, two: true}, {t: 'min', r: 7, two: true}, {t: 'maj7', r: 7}, {t: 'dom7', r: 7}, {t: 'min7', r: 7}], chordNote: 'Bb and Gm need both fingerings. Then Gmaj7, G7 and Gm7 once each, and the suspended-chord exercise to a click (see Strumming).',
+  types: ['maj', 'natmin', 'majpent', 'minpent', 'blues'], arpTypes: ['maj', 'min'], chordTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'sus2', 'sus4'], roots: [2, 10, 0, 11, 7, 9, 5], strumIds: ['ddu', 'island', 'sus']},
+ {name: 'Grade 3', tempo: 90, rhythm: 'quarter notes', reqScales: [
+   {t: 'maj', r: [2, 3, 4], f: 'box', l: 'Major from D, Eb, E'}, {t: 'natmin', r: [2, 3, 4], f: 'box', l: 'Natural minor from D, Eb, E'}, {t: 'majpent', r: [2, 3, 4], f: 'box', l: 'Major pentatonic from D, Eb, E'}, {t: 'minpent', r: [2, 3, 4], f: 'box', l: 'Minor pentatonic from D, Eb, E'},
+   {t: 'majpent', r: 0, f: 'camp', l: 'C major pentatonic — campanella'}, {t: 'maj', r: 0, f: 'lin1', l: 'C major — linear on the 3rd string'}],
+  reqArps: [{t: 'maj', r: [2, 3, 4], l: 'Major from D, Eb, E'}, {t: 'min', r: [2, 3, 4], l: 'Minor from D, Eb, E'}, {t: 'dim', r: [2, 3, 4], l: 'Diminished from D, Eb, E'}, {t: 'maj', r: 2, f: 'four', l: 'D major on four strings'}, {t: 'maj', r: 4, f: 'four', l: 'E major on four strings'}],
+  reqChords: [{t: 'dim', r: 2, inv: true}, {t: 'dim', r: 3, inv: true}, {t: 'dim', r: 4, inv: true}], chordNote: 'Diminished triads in root position and first inversion. Barre chords I, IV, IIm, V7, VIm in D, Eb or E as a continuous sequence to the click, and the chordal-muting groove in B minor with a swung feel (see Strumming).',
+  harmonised: {keys: [2, 3, 4], seq: ['I', 'IV', 'IIm', 'V7', 'VIm']},
+  types: ['maj', 'natmin', 'majpent', 'minpent', 'blues'], arpTypes: ['maj', 'min', 'dim'], chordTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'dim', 'sus4'], roots: [2, 3, 4, 0, 7, 9, 11], strumIds: ['island', 'mute8', 'sus']},
+ {name: 'Grade 4', tempo: 80, rhythm: 'eighth notes', reqScales: [
+   {t: 'maj', r: [3, 4, 5], f: 'box', l: 'Major from Eb, E, F'}, {t: 'natmin', r: [3, 4, 5], f: 'box', l: 'Natural minor from Eb, E, F'}, {t: 'harmmin', r: [3, 4, 5], f: 'box', l: 'Harmonic minor from Eb, E, F'},
+   {t: 'minpent', r: 1, f: 'pos2', l: 'C# minor pentatonic — two positions'}, {t: 'majpent', r: 4, f: 'pos2', l: 'E major pentatonic — two positions'}, {t: 'blues', r: 2, f: 'two34', l: 'D blues on strings 3 & 4'}, {t: 'maj', r: 7, f: 'lin', l: 'G major — linear on one string'}, {t: 'natmin', r: 0, f: 'lin', l: 'C natural minor — linear on one string'}],
+  reqArps: [{t: 'maj', r: [3, 4, 5], l: 'Major from Eb, E, F'}, {t: 'min', r: [3, 4, 5], l: 'Minor from Eb, E, F'}, {t: 'dom7', r: [3, 4, 5], l: 'Dominant 7 from Eb, E, F'}, {t: 'min7', r: [3, 4, 5], l: 'Minor 7 from Eb, E, F'}, {t: 'dom7', r: 3, f: 'four', l: 'Eb7 on four strings'}, {t: 'min7', r: 0, f: 'four', l: 'Cm7 on four strings'}],
+  reqChords: [], chordNote: 'Harmonised scale in barre shapes — I, IIm, IIIm, IV, V, VIm, VIIdim, I — in Eb, E or F to the click, then either muted chords with 16th-note strumming (swung 16ths) or triple strokes (see Strumming).',
+  harmonised: {keys: [3, 4, 5], seq: ['I', 'IIm', 'IIIm', 'IV', 'V', 'VIm', 'VIIdim', 'I']},
+  types: ['maj', 'natmin', 'harmmin', 'majpent', 'minpent', 'blues'], arpTypes: ['maj', 'min', 'dim', 'dom7', 'min7'], chordTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'dim', 'maj6', 'min6', 'sus4'], roots: [3, 4, 5, 1, 2, 7, 0], strumIds: ['mute16', 'triple', 'island']},
+ {name: 'Grade 5', tempo: 90, rhythm: 'eighth notes', reqScales: [
+   {t: 'maj', r: 8, f: 'pos3', l: 'Ab major in three positions'}, {t: 'maj', r: 11, f: 'pos3', l: 'B major in three positions'}, {t: 'harmmin', r: [7, 0, 4, 9], f: 'linopen', l: 'Harmonic minor on one string, root on any open string'}, {t: 'maj', r: 0, f: 'camp', l: 'C major — campanella'}, {t: 'maj', r: 7, f: 'camp', l: 'G major — campanella'}],
+  reqArps: [{t: 'maj7', r: 8, l: 'Ab: Imaj7 – V7 – VIm7 as one exercise'}, {t: 'maj7', r: 11, l: 'B: Imaj7 – V7 – VIm7 as one exercise'}, {t: 'min7', r: 1, f: 'four', l: 'C#m7 across four strings'}],
+  reqChords: [], chordNote: 'Harmonised scale in Ab or B (I, IIm, IIIm, IV, V, VIm, VIIdim, I) to the click, then either dominant 7 partial chords with 16th-note strumming or dominant 7 chords with triple strokes (see Strumming).',
+  harmonised: {keys: [8, 11], seq: ['I', 'IIm', 'IIIm', 'IV', 'V', 'VIm', 'VIIdim', 'I']},
+  types: ['maj', 'natmin', 'harmmin', 'majpent', 'minpent', 'blues'], arpTypes: ['maj', 'min', 'dom7', 'maj7', 'min7'], chordTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'dim', 'sus2', 'sus4', 'maj6', 'min6'], roots: [8, 11, 1, 7, 0, 4, 9], strumIds: ['mute16', 'triple', 'reggae']},
+ {name: 'Grade 6', tempo: 100, rhythm: 'eighth notes', reqScales: [
+   {t: 'dorian', r: [4, 5, 6, 7], f: 'box', l: 'Dorian from E, F, F#, G'}, {t: 'mixo', r: [4, 5, 6, 7], f: 'box', l: 'Mixolydian from E, F, F#, G'}, {t: 'melmin', r: [4, 5, 6, 7], f: 'box', l: 'Melodic minor from E, F, F#, G'}, {t: 'chrom', r: [4, 5, 6, 7], f: 'box', l: 'Chromatic from E, F, F#, G'},
+   {t: 'maj', r: 7, f: 'thirds', l: 'G major in 3rds — strings 1 & 4'}, {t: 'natmin', r: 7, f: 'thirds', l: 'G natural minor in 3rds — strings 1 & 4'}, {t: 'natmin', r: 2, f: 'camp', l: 'D natural minor — campanella'}, {t: 'harmmin', r: 2, f: 'camp', l: 'D harmonic minor — campanella'}, {t: 'minpent', r: 1, f: 'pos4', l: 'C# minor pentatonic — four positions'}],
+  reqArps: [{t: 'm7b5', r: [4, 5, 6, 7], l: 'Minor 7b5 from E, F, F#, G'}, {t: 'dim7', r: [4, 5, 6, 7], l: 'Diminished 7 from E, F, F#, G'}, {t: 'maj7', r: 4, f: 'tenth', l: 'Emaj7 — compound 10th'}, {t: 'dom7', r: 4, f: 'tenth', l: 'E7 — compound 10th'}, {t: 'aug', r: 4, f: 'tenth', l: 'E augmented — compound 10th'}, {t: 'min6', r: 4, f: 'four', l: 'Em6 on four strings'}, {t: 'min7', r: 7, f: 'four', l: 'Gm7 on four strings'}],
+  reqChords: [{t: 'm7b5', r: [4, 5, 6, 7], two: true}, {t: 'dim7', r: [4, 5, 6, 7], two: true}, {t: 'aug', r: [4, 5, 6, 7], two: true}], chordNote: 'Each type from E, F, F# and G in two positions, and the F major harmonised scale ascending to the click.',
+  harmonised: {keys: [5], seq: ['I', 'IIm', 'IIIm', 'IV', 'V', 'VIm', 'VIIdim', 'I']},
+  types: ['maj', 'natmin', 'harmmin', 'melmin', 'dorian', 'mixo', 'majpent', 'minpent', 'blues', 'chrom'], arpTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'm7b5', 'dim7', 'aug', 'min6'], chordTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'm7b5', 'dim7', 'aug', 'sus4', 'maj6', 'min6'], roots: [4, 5, 6, 7, 2, 1, 0], strumIds: ['mute16', 'triple', 'reggae', 'swing']},
+ {name: 'Grade 7', tempo: 100, rhythm: 'eighth notes', reqScales: [
+   {t: 'lydian', r: [4, 5, 6, 7], f: 'box', l: 'Lydian from E, F, F#, G'}, {t: 'phryg', r: [4, 5, 6, 7], f: 'box', l: 'Phrygian from E, F, F#, G'}, {t: 'phrygdom', r: [4, 5, 6, 7], f: 'box', l: 'Phrygian dominant from E, F, F#, G'},
+   {t: 'maj', r: 10, f: 'sixths', l: 'Bb major in 6ths — strings 1 & 3'}, {t: 'natmin', r: 10, f: 'sixths', l: 'Bb natural minor in 6ths — strings 1 & 3'}, {t: 'dorian', r: 4, f: 'camp', l: 'E dorian — campanella'}, {t: 'natmin', r: 4, f: 'camp', l: 'E natural minor — campanella'}, {t: 'melmin', r: [7, 0, 4, 9], f: 'linopen', l: 'Melodic minor on one string, root on any open string'}, {t: 'chrom', r: [7, 0, 4, 9], f: 'linopen', l: 'Chromatic on one string, from any open string'}],
+  reqArps: [{t: 'maj9', r: [4, 5, 6, 7], l: 'Major 9 from E, F, F#, G'}, {t: 'min9', r: [4, 5, 6, 7], l: 'Minor 9 from E, F, F#, G'}, {t: 'dim7', r: 2, f: 'pos2', l: 'Ddim7 in two positions'}, {t: 'm7b5', r: 2, f: 'pos2', l: 'Dm7b5 in two positions'}, {t: 'dom7add4', r: 0, f: 'four', l: 'C7add4 across four strings'}, {t: 'dom7add4', r: 4, f: 'four', l: 'E7add4 across four strings'}],
+  reqChords: [{t: 'dom9', r: [4, 5, 6, 7], two: true}, {t: 'min9', r: [4, 5, 6, 7], two: true}, {t: 'maj9', r: [4, 5, 6, 7], two: true}], chordNote: 'Each type from E, F, F# and G: root, then both positions. Plus 7th chords in F major, two voicings each (Imaj7, VIm7, IIm7, VIIm7b5, Imaj7) to the click.',
+  harmonised: {keys: [5], seq: ['Imaj7', 'VIm7', 'IIm7', 'VIIm7b5', 'Imaj7']},
+  types: ['maj', 'natmin', 'harmmin', 'melmin', 'dorian', 'mixo', 'lydian', 'phryg', 'phrygdom', 'majpent', 'minpent', 'blues', 'chrom'], arpTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'm7b5', 'dim7', 'aug', 'min6', 'maj9', 'min9', 'dom7add4'], chordTypes: ['maj', 'min', 'dom7', 'maj7', 'min7', 'm7b5', 'dim7', 'aug', 'dom9', 'min9', 'maj9', 'sus4'], roots: [4, 5, 6, 7, 10, 2, 0], strumIds: ['mute16', 'triple', 'reggae', 'swing', 'bossa']},
+ {name: 'Grade 8', tempo: 100, rhythm: 'eighth notes', reqScales: [
+   {t: 'whole', r: [4, 5, 6, 7], f: 'box', l: 'Whole tone from E, F, F#, G'}, {t: 'dim', r: [4, 5, 6, 7], f: 'box', l: 'Diminished from E, F, F#, G'}, {t: 'alt', r: [4, 5, 6, 7], f: 'box', l: 'Altered from E, F, F#, G'},
+   {t: 'chrom', r: [7, 0, 4, 9], f: 'linopen', l: 'Chromatic on one string, from any open string'}, {t: 'phryg', r: 4, f: 'camp', l: 'E phrygian — campanella'}, {t: 'maj', r: 0, f: 'sixths34', l: 'C major in 6ths on strings 3 & 4'},
+   {t: 'maj', r: [7, 0, 4, 9], f: 'linopen', l: 'From earlier grades: major on one string, any open-string root'}, {t: 'natmin', r: [7, 0, 4, 9], f: 'linopen', l: 'Natural minor on one string'}, {t: 'melmin', r: [7, 0, 4, 9], f: 'linopen', l: 'Melodic minor on one string'}, {t: 'harmmin', r: [7, 0, 4, 9], f: 'linopen', l: 'Harmonic minor on one string'},
+   {t: 'natmin', r: 2, f: 'camp', l: 'Campanella set: D natural minor'}, {t: 'harmmin', r: 2, f: 'camp', l: 'D harmonic minor'}, {t: 'natmin', r: 4, f: 'camp', l: 'E natural minor'}, {t: 'dorian', r: 4, f: 'camp', l: 'E dorian'}, {t: 'maj', r: 0, f: 'camp', l: 'C major'}, {t: 'maj', r: 7, f: 'camp', l: 'G major'}],
+  reqArps: [{t: '7s5', r: [4, 5, 6, 7], l: 'Dominant 7#5 from E, F, F#, G'}, {t: '7b5', r: [4, 5, 6, 7], l: 'Dominant 7b5 from E, F, F#, G'}, {t: '7b9', r: [4, 5, 6, 7], l: 'Dominant 7b9 from E, F, F#, G'}, {t: 'mmaj9', r: [4, 5, 6, 7], l: 'Minor/major 9 from E, F, F#, G'}, {t: 'min6', r: 4, f: 'four', l: 'Em6 on four strings (from Grade 6)'}, {t: 'min7', r: 7, f: 'four', l: 'Gm7 on four strings (from Grade 6)'}],
+  reqChords: [{t: '7s5', r: 5, two: true}, {t: '7b5', r: 5, two: true}, {t: '7s9', r: 0}, {t: '7b9', r: 0}], chordNote: 'F7#5 and F7b5 in two voicings to the click; C7#9 and C7b9 in the one voicing shown in the book.',
+  types: Object.keys(SCALES), arpTypes: Object.keys(CHORDS), chordTypes: Object.keys(CHORDS), roots: [4, 5, 6, 7, 0, 2, 10], strumIds: ['mute16', 'triple', 'reggae', 'swing', 'bossa', 'funk']},
+];
+const FING_NAMES = {box: 'Position (C → E → A)', two34: 'Strings 3 & 4', lin1: 'One string (3rd)', lin: 'One string', linopen: 'One string from an open string', camp: 'Campanella', pos2: 'Two positions', pos3: 'Three positions', pos4: 'Four positions', thirds: 'In 3rds (strings 1 & 4)', sixths: 'In 6ths (strings 1 & 3)', sixths34: 'In 6ths (strings 3 & 4)', neck: 'Whole neck'};
+const ARP_FINGS = {box: 'Position', four: 'On four strings', tenth: 'Compound 10th', pos2: 'Two positions'};
+
+/* ================= exam notes per grade (summary) ================= */
+const EXAM = [
+ ['Debut', 'Sight reading or improvisation: 4 bars in C major, whole/half/quarter notes, open position (C and D on the 3rd string, E on the 2nd), q=65. Ear tests: two notes — higher or lower; a two-bar rhythm on the A string to play back and pick from two printed examples, q=85. Questions: the stave and the TAB, the treble clef, half and quarter notes; name one part of the ukulele.'],
+ ['Grade 1', 'Sight reading or improvisation: 4 bars, G major or A minor, half and quarter notes, open position (E–G on the 2nd string, A B C on the 1st), q=70. Ear tests: three notes up or down; two-bar rhythm (quarters, quarter rests, eighths) to play back, q=90. Questions: treble clef, time signature, whole to eighth note values, major vs minor chord; two parts of the ukulele and the open-string names.'],
+ ['Grade 2', 'Sight reading: 4 bars, D major or Bb major, quarters, quarter rests and eighths, open to 4th fret on strings 1–3, q=80. Improvisation q=85. Ear tests: a two-bar C minor pentatonic melody to play back (root first, first interval ascending), q=85; two-bar rhythm on the A string, q=90. Questions: pitch names, what the time signature means, whole to 16th note values, rest values, how a major or minor chord is built; three parts of the ukulele, all open strings.'],
+ ['Grade 3', 'Sight reading or improvisation: 4 bars, Eb major or E minor, quarters and eighths with rests, q=80 (improv 80–90). Ear tests: two-bar D minor pentatonic melody to play back, q=85; two-bar rhythm on the A string. Questions: pitch names, time signature, values from whole to 16th including dotted, construction of major, minor, sus4, dominant 7 and minor 7 chords, dynamics and articulation; parts of the ukulele, open strings.'],
+ ['Grade 4', 'Sight reading: 8 bars, E major or F minor, quarters, eighths, rests and ties, q=80–90. Improvisation: 4 bars. Ear tests: two-bar melody in C# minor pentatonic or E major pentatonic to play back, q=90; harmonic recall — a tonic then a two-bar I, IV, V sequence in C major to play with the book rhythm, then name, q=90. Questions: pitches, time and key signatures, repeat marks and D.C./D.S./Coda, note and rest values to triplets and 16ths, construction of maj7, m7, dom7, dim, 6 and m6 chords, dynamics; plus one technical question on picking or fretting for a phrase.'],
+ ['Grade 5', 'Sight reading: 8 bars, Ab major or B major, dotted eighths, 16ths and ties, q=80. Improvisation: 8 bars, q=80–90. Ear tests: two-bar Ab major melody to play back, q=80; harmonic recall — four bars from I, IV, V, VIm in G major to play and name with chord types, q=90. Questions add sus2/sus4, "no 3rd" chords and slash chords, and a technical question.'],
+ ['Grade 6', 'Quick Study Piece in the style you chose for the stylistic study (rock & pop / soul, jazz & blues / ukulele specialist): three minutes to study, then perform on the second backing-track pass. Ear tests: two-bar D natural minor melody (root or 5th first, up or down), q=90; harmonic recall — four bars in F major from I, IIm, IIIm, IV, V, VIm including a V7, q=90. Questions: pitches, expressive markings, dynamics, a scale that fits the solo section or a stylistic feature; technical question.'],
+ ['Grade 7', 'Quick Study Piece as at Grade 6. Ear tests: two-bar melody in F major or F natural minor, q=90; harmonic recall — four bars in F major from I, IIm, IIIm, IV, V, VIm where the minor chords may be m7, name types and extensions, q=90. Questions as Grade 6, plus a technical question.'],
+ ['Grade 8', 'Quick Study Piece as at Grade 6. Ear tests: two-bar melody in F major, F harmonic minor or F natural minor, q=90; harmonic recall — four bars in F major where I and IV may be maj7, name types and extensions, q=90. Questions as Grade 6, plus a technical question. Everything in Group A/B at q=100, one octave, eighth notes finishing on a quarter, ascending and descending.'],
+];
+
+/* ================= strumming patterns ================= */
+// cells are 8ths (or 16ths when res=16); D down, U up, x muted chop, - nothing; T = triple stroke (three strokes in the beat)
+const STRUMS = {
+  down:   {name: 'Four downs', res: 8, cells: 'D-D-D-D-', swing: false, note: 'Debut: one strum a beat. Count out loud.'},
+  ddu:    {name: 'D DU D DU', res: 8, cells: 'D-DUD-DU', note: 'The first pattern most songs use.'},
+  island: {name: 'Island strum', res: 8, cells: 'D-DU-UDU', note: 'Down, down-up, up-down-up — the ukulele\'s signature. Keep the hand moving on the missing beat.'},
+  sus:    {name: 'Sus chord exercise', res: 8, cells: 'D-DUD-DU', chords: ['maj', 'sus4', 'maj', 'sus2'], per: 4, note: 'Grade 2 Group C: C, Csus4, C, Csus2 — one bar each, continuous, to the click at q=80.'},
+  mute8:  {name: 'Chordal muting groove', res: 8, cells: 'DxDUxUDx', swing: true, note: 'Grade 3: chord, chop, chord — a swung eighth-note feel in B minor, q=90. The x is a muted stroke: relax the fretting hand as you strum.'},
+  mute16: {name: 'Muted 16ths', res: 16, cells: 'D-xUD-xU-UxUD-xU', swing: true, note: 'Grades 4–5: swung 16th-note groove with muted chops, q=80–90.'},
+  triple: {name: 'Triple strokes', res: 8, cells: 'T-D-T-D-', note: 'Grades 4–5: three strokes across the beat (index down, thumb down, index up) then a plain down.'},
+  reggae: {name: 'Reggae skank', res: 8, cells: '-D-D-D-D', note: 'Off-beat chops only, short and muted straight after each stroke.'},
+  swing:  {name: 'Swing comp', res: 8, cells: 'D-DxD-DU', swing: true, note: 'Jazz-style comping with a swung feel.'},
+  bossa:  {name: 'Bossa', res: 16, cells: 'D--D--D-D--D--D-', note: 'The bossa clave feel, thumb on the low strings.'},
+  funk:   {name: 'Funk 16ths', res: 16, cells: 'DxxUxxDxDxxUxUDx', note: 'Sixteenth-note funk — most of it is muted, the accents are what you hear.'},
+};
+
+/* ================= audio: a plucked ukulele string, strums, click ================= */
+let AC = null, master = null; const KSP = {damp: 0.994, seed: 0.7, lp: 5200}; const KS = {}, KSORDER = [];
+function audio() { if (!AC) { AC = new (window.AudioContext || window.webkitAudioContext)(); try { const b = AC.createBuffer(1, 1, 22050), s = AC.createBufferSource(); s.buffer = b; s.connect(AC.destination); s.start(0); } catch (_) {} master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination); } if (AC.state !== 'running') AC.resume().catch(() => {}); return AC; }
+document.addEventListener('pointerdown', () => audio(), true);
+document.addEventListener('visibilitychange', () => { if (!document.hidden && AC && AC.state !== 'running') AC.resume().catch(() => {}); });
+const freqOf = m => 440 * Math.pow(2, (m - 69) / 12);
+function ksBuffer(c, sr, N) { const n = Math.floor(sr * 2), buf = c.createBuffer(1, n, sr), out = buf.getChannelData(0), ring = new Float32Array(N); let last = 0; for (let i = 0; i < N; i++) { const w = Math.random() * 2 - 1; last += KSP.seed * (w - last); ring[i] = last; } let idx = 0; for (let i = 0; i < n; i++) { const cur = ring[idx], nxt = ring[(idx + 1) % N]; const v = KSP.damp * 0.5 * (cur + nxt); ring[idx] = v; out[i] = cur; idx = (idx + 1) % N; } return buf; }
+function pluck(midi, at, dur, gain) { const c = audio(), f = freqOf(midi), N = Math.max(2, Math.round(c.sampleRate / f)); if (!KS[N]) { KS[N] = ksBuffer(c, c.sampleRate, N); KSORDER.push(N); while (KSORDER.length > 24) delete KS[KSORDER.shift()]; }
+  const t = c.currentTime + Math.max(at, 0.012); const src = c.createBufferSource(); src.buffer = KS[N]; src.playbackRate.value = f / (c.sampleRate / N); const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = KSP.lp; const g = c.createGain(); g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(gain, t + 0.004); g.gain.setValueAtTime(gain, t + dur * 0.7); g.gain.exponentialRampToValueAtTime(0.0001, t + dur); src.connect(lp); lp.connect(g); g.connect(master); src.start(t); src.stop(t + dur + 0.05); }
+function chop(at, gain) { const c = audio(); const t = c.currentTime + Math.max(at, 0.012); const n = c.createBufferSource(); const len = Math.floor(c.sampleRate * 0.06); const b = c.createBuffer(1, len, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2); n.buffer = b; const f = c.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.8; const g = c.createGain(); g.gain.value = gain; n.connect(f); f.connect(g); g.connect(master); n.start(t); n.stop(t + 0.07); }
+function strum(midis, at, down, dur, gain) { const order = down ? [0, 1, 2, 3] : [3, 2, 1, 0]; order.forEach((s, i) => { if (midis[s] !== null && midis[s] !== undefined) pluck(midis[s], at + i * 0.018, dur, gain); }); }
+function click(at, accent) { const c = audio(); const t = c.currentTime + Math.max(at, 0.012); const o = c.createOscillator(), g = c.createGain(); o.type = 'square'; o.frequency.value = accent ? 1600 : 1100; g.gain.setValueAtTime(accent ? 0.28 : 0.18, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.045); o.connect(g); g.connect(master); o.start(t); o.stop(t + 0.05); }
+function playRun(grid, bpm, eighths) { const step = 60 / bpm / (eighths ? 2 : 1); const ms = grid.map(g => g.midi); const seq = ms.concat(ms.slice(0, -1).reverse()); seq.forEach((m, i) => pluck(m, i * step, step * 0.95, 0.5)); }
+function playPairs(pairs, bpm) { const step = 60 / bpm; pairs.forEach((p, i) => { pluck(p[0].midi, i * step, step * 0.95, 0.4); pluck(p[1].midi, i * step + 0.01, step * 0.95, 0.4); }); }
+/* ================= drawing ================= */
+function boardSVG(grid, rootPc, nm, dg, showDeg, opts) {   // horizontal neck, 4 strings, the rooms' look
+  opts = opts || {}; if (!grid.length) return '<p class="note">Nothing fits on the neck here.</p>';
+  const frets = grid.map(g => g.fret); const lo = Math.max(0, Math.min(...frets) - 1), hi = Math.min(MAX_FRET + 1, Math.max(...frets) + 1); const cols = hi - lo + 1;
+  const W = 46 + cols * 54, H = 150, top = 24, rowH = (H - top - 30) / 3; const fx = f => 46 + (f - lo + 0.5) * 54;
+  let o = `<div class="fb-scroll"><svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px;min-width:${Math.round(W * 0.5)}px;height:auto" class="fb-svg" role="img">`;
+  o += `<rect x="40" y="${top - 12}" width="${W - 46}" height="${rowH * 3 + 24}" fill="#1D2226" rx="3"/>`; if (lo === 0) o += `<rect x="40" y="${top - 12}" width="6" height="${rowH * 3 + 24}" fill="#E6DECB"/>`;
+  [3, 5, 7, 10, 12, 15].filter(m => m >= lo && m <= hi).forEach(m => { if (m === 12) o += `<circle cx="${fx(m)}" cy="${top + rowH * 0.5}" r="5" fill="#2A3136"/><circle cx="${fx(m)}" cy="${top + rowH * 2.5}" r="5" fill="#2A3136"/>`; else o += `<circle cx="${fx(m)}" cy="${top + rowH * 1.5}" r="5" fill="#2A3136"/>`; });
+  for (let i = 0; i <= cols; i++) o += `<line x1="${46 + i * 54}" y1="${top - 12}" x2="${46 + i * 54}" y2="${top + rowH * 3 + 12}" stroke="#AEB6BF" stroke-width="2"/>`;
+  [0, 1, 2, 3].forEach(s => { const y = top + rowH * (3 - s); o += `<line x1="40" y1="${y}" x2="${W - 6}" y2="${y}" stroke="#AEB6BF" stroke-width="${s === 0 ? 1.1 : 0.7 + (3 - s) * 0.3}"/><text x="30" y="${y + 4}" text-anchor="middle" class="fb-str">${STRN[s]}</text>`; });
+  grid.forEach((g, i) => { const p = pc(g.midi), isRoot = p === pc(rootPc), cx = fx(g.fret), cy = top + rowH * (3 - g.s); const label = opts.order ? String(i + 1) : showDeg ? (dg[p] || '') : (nm[p] || SHARP[p]);
+    o += `<g data-m="${g.midi}" style="cursor:pointer"><circle cx="${cx}" cy="${cy}" r="13" fill="${isRoot ? '#FF9F40' : '#1E5F58'}" stroke="${isRoot ? '#FFBC79' : '#4FB3A6'}" stroke-width="1.4"/><text x="${cx}" y="${cy + 4}" text-anchor="middle" class="fb-note" fill="${isRoot ? '#101315' : '#DFF3EF'}">${label}</text></g>`; });
+  for (let i = 0; i < cols; i++) o += `<text x="${fx(lo + i)}" y="${H - 8}" text-anchor="middle" class="fb-fretnum">${lo + i}</text>`;
+  return o + '</svg></div>';
+}
+function neckSVG(rootPc, steps, nm, dg, showDeg) { const set = new Set(steps.map(s => pc(rootPc + s))); const g = []; for (let s = 0; s < 4; s++) for (let f = 0; f <= MAX_FRET; f++) if (set.has(pc(OPEN[s] + f))) g.push({s, fret: f, midi: OPEN[s] + f}); const all = g.concat([{s: 0, fret: 0, midi: OPEN[0]}, {s: 0, fret: MAX_FRET, midi: OPEN[0] + MAX_FRET}]); return boardSVG(g.length ? g : [], rootPc, nm, dg, showDeg); }
+function chordSVG(v, name, sub, rootPc) {   // vertical chord box: strings G C E A left to right
+  const base = v.hi > 4 && v.lo > 1 ? v.lo : 1; const W = 120, H = 150, left = 26, top = 30, sw = 22, fh = 24; const fin = fingersFor(v.frets);
+  let o = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${name}">`;
+  if (base === 1) o += `<rect x="${left - 1}" y="${top - 4}" width="${sw * 3 + 2}" height="5" fill="#E6DECB"/>`; else o += `<text x="${left - 8}" y="${top + fh * 0.7}" text-anchor="end" class="fb-fretnum">${base}fr</text>`;
+  for (let f = 0; f <= 4; f++) o += `<line x1="${left}" y1="${top + f * fh}" x2="${left + sw * 3}" y2="${top + f * fh}" stroke="#AEB6BF" stroke-width="${f === 0 ? 2 : 1}"/>`;
+  for (let s = 0; s < 4; s++) o += `<line x1="${left + s * sw}" y1="${top}" x2="${left + s * sw}" y2="${top + fh * 4}" stroke="#AEB6BF" stroke-width="1"/>`;
+  v.frets.forEach((f, s) => { const x = left + s * sw; const p = pc(OPEN[s] + f); const isRoot = p === rootPc;
+    if (f === 0) o += `<circle cx="${x}" cy="${top - 12}" r="5" fill="none" stroke="${isRoot ? '#FF9F40' : '#DFF3EF'}" stroke-width="1.6"/>`;
+    else { const y = top + (f - base + 0.5) * fh; o += `<circle cx="${x}" cy="${y}" r="9" fill="${isRoot ? '#FF9F40' : '#1E5F58'}" stroke="${isRoot ? '#FFBC79' : '#4FB3A6'}" stroke-width="1.2"/><text x="${x}" y="${y + 3.5}" text-anchor="middle" class="fb-note" fill="${isRoot ? '#101315' : '#DFF3EF'}">${fin[s] || ''}</text>`; } });
+  [0, 1, 2, 3].forEach(s => o += `<text x="${left + s * sw}" y="${top + fh * 4 + 14}" text-anchor="middle" class="fb-str">${STRN[s]}</text>`);
+  return o + '</svg>';
+}
+
+/* ================= state & rendering ================= */
+const S = {grade: 1, tab: 'scales', st: 'maj', sr: 0, sf: 'box', sdeg: false, oct: 1, at: 'maj', ar: 0, af: 'box', ct: 'maj', cr: 0, strum: 'ddu', strumBpm: 80, strumClick: true, strumChord: 'maj', strumRoot: 0, mBpm: 80, mSig: 4};
+try { Object.assign(S, JSON.parse(localStorage.getItem('uke.room') || '{}')); } catch (_) {}
+const saveS = () => { try { localStorage.setItem('uke.room', JSON.stringify(S)); } catch (_) {} };
+const G = () => GRADES[S.grade];
+const chips = (el, list, cur, fn, cls) => { el.innerHTML = list.map(([k, l]) => `<button class="chip ${cls || ''} ${String(k) === String(cur) ? 'sel' : ''}" data-k="${k}">${l}</button>`).join(''); el.querySelectorAll('button').forEach(b => b.addEventListener('click', () => fn(b.dataset.k))); };
+function toast(m) { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toast.h); toast.h = setTimeout(() => t.classList.remove('on'), 2200); }
+
+function renderGrades() { $('grades').innerHTML = GRADES.map((g, i) => `<button class="${i === S.grade ? 'on' : ''}" data-g="${i}">${g.name}</button>`).join(''); $('grades').querySelectorAll('button').forEach(b => b.addEventListener('click', () => { S.grade = +b.dataset.g; saveS(); renderAll(); })); }
+function reqLabel(q) { return q.l || (Array.isArray(q.r) ? CHORDS[q.t].name + ' from ' + q.r.map(rootName).join(', ') : rootName(q.r) + CHORDS[q.t].suffix); }
+
+function renderScales() {
+  const g = G(); $('scalesLead').textContent = `${g.name}: Group A scales at q=${g.tempo}, ${g.rhythm}, to a click after four counts. ${g.name === 'Debut' || g.name === 'Grade 1' || g.name === 'Grade 2' ? 'One octave, ascending and descending.' : 'Tap any note to hear it; ▶ Run plays the shape up and down at the exam tempo.'}`;
+  chips($('scaleReqs'), g.reqScales.map((q, i) => [i, q.l]), S.sreq, k => { const q = g.reqScales[+k]; S.sreq = +k; S.st = q.t; S.sr = Array.isArray(q.r) ? q.r[0] : q.r; S.sf = q.f; saveS(); renderScales(); }, 'req');
+  if (!g.types.includes(S.st)) S.st = g.types[0];
+  chips($('scaleTypes'), g.types.map(k => [k, SCALES[k].name]), S.st, k => { S.st = k; S.sreq = -1; saveS(); renderScales(); });
+  const roots = [...new Set([...g.roots, S.sr])].sort((a, b) => a - b); const allRoots = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  chips($('scaleRoots'), allRoots.map(r => [r, rootName(r)]), S.sr, k => { S.sr = +k; S.sreq = -1; saveS(); renderScales(); });
+  const fings = ['box', 'camp', 'lin', 'two34', 'pos3', 'thirds', 'sixths', 'neck'];
+  chips($('scaleFings'), fings.map(k => [k, FING_NAMES[k]]), ['lin1', 'linopen'].includes(S.sf) ? 'lin' : ['pos2', 'pos4'].includes(S.sf) ? 'pos3' : S.sf === 'sixths34' ? 'sixths' : S.sf, k => { S.sf = k; saveS(); renderScales(); });
+  const sc = SCALES[S.st]; const sp = spell(S.sr, sc.letters, sc.steps); const nm = nameMap(sp), dg = degMap(sp); let h = '', grid = [], pairs = null, sub = '';
+  const f = S.sf;
+  if (f === 'box') { grid = boxScale(S.sr, sc.steps, S.oct); sub = 'root on the C string, climbing C → E → A' + (grid.some(x => x.s === 0) ? ', top notes on the G string' : ''); }
+  else if (f === 'camp') { grid = campanella(S.sr, sc.steps, 1); sub = 'campanella — every note on a different string from the last, open strings ringing on'; }
+  else if (f === 'lin' || f === 'lin1' || f === 'linopen') { const s = f === 'lin1' ? 1 : [7, 0, 4, 9].indexOf(S.sr) >= 0 && f === 'linopen' ? [7, 0, 4, 9].indexOf(S.sr) : (S.sr === 0 ? 1 : S.sr === 7 ? 0 : S.sr === 4 ? 2 : S.sr === 9 ? 3 : 1); grid = S.st === 'chrom' ? chromLinear(S.sr, s) : linear(S.sr, sc.steps, s); sub = 'linear — one octave on the ' + STRN[s] + ' string'; }
+  else if (f === 'two34') { grid = twoStrings(S.sr, sc.steps, [1, 0]); sub = 'on strings 3 and 4 — the G string carries on where the C string runs out'; }
+  else if (f === 'pos2' || f === 'pos3' || f === 'pos4') { const n = f === 'pos2' ? 2 : f === 'pos3' ? 3 : 4; const f0 = lowestOn(1, S.sr); const starts = [f0, f0 + 5, f0 + 7, f0 + 10].slice(0, n).map(x => x % 12 > MAX_FRET - 4 ? x - 12 : x).filter(x => x >= 0);
+    h += starts.map((st, i) => `<div class="lab">Position ${i + 1} · frets ${Math.max(0, st - 1)}–${st + 4}</div>` + boardSVG(windowScale(S.sr, sc.steps, Math.max(0, st - 1), st + 4), S.sr, nm, dg, S.sdeg)).join(''); grid = windowScale(S.sr, sc.steps, Math.max(0, f0 - 1), f0 + 4); sub = n + ' positions up the neck'; }
+  else if (f === 'thirds' || f === 'sixths' || f === 'sixths34') { pairs = intervals(S.sr, sc.steps, f === 'thirds' ? 2 : 5, f === 'thirds' ? [0, 3] : f === 'sixths' ? [1, 3] : [1, 0]); sub = (f === 'thirds' ? 'in 3rds on strings 1 & 4' : f === 'sixths' ? 'in 6ths on strings 1 & 3' : 'in 6ths on strings 3 & 4') + ' — each pair rings together'; grid = pairs.flat(); }
+  else if (f === 'neck') { sub = 'every ' + sc.name.toLowerCase() + ' note on the neck'; }
+  const head = `<div class="scale-head"><div><div class="big">${sp[0].name} ${sc.name}</div><div class="spelt">${sp.map(n => n.name).join('  ')}</div><div class="degline">${sp.map(n => n.deg).join('  ')}</div><div class="use">${sub}${sc.use ? ' · use it over ' + sc.use : ''}</div></div>
+    <div class="chips"><button class="chip" data-act="deg">${S.sdeg ? 'Showing: degrees' : 'Showing: note names'}</button>${f === 'box' ? `<button class="chip" data-act="oct">${S.oct === 1 ? 'One octave' : 'As far as it goes'}</button>` : ''}<button class="chip" data-act="run">▶ Run at q=${g.tempo}</button></div></div>`;
+  if (f === 'neck') h = head + neckSVG(S.sr, sc.steps, nm, dg, S.sdeg); else if (pairs) h = head + boardSVG(grid, S.sr, nm, dg, S.sdeg) + '<p class="note">Play each pair as one stroke — the lower note first is fine at exam tempo.</p>'; else if (f.startsWith('pos')) h = head + h; else h = head + boardSVG(grid, S.sr, nm, dg, S.sdeg, {order: f === 'camp'}) + (f === 'camp' ? '<p class="note">Numbers show the order to play. Let every string ring — that overlap is the campanella sound.</p>' : '');
+  $('scaleView').innerHTML = h; $('scaleView').dataset.grid = JSON.stringify(grid); $('scaleView').dataset.pairs = pairs ? JSON.stringify(pairs) : '';
+}
+function renderArps() {
+  const g = G(); $('arpsLead').textContent = `${g.name}: Group B arpeggios at q=${g.tempo}, ${g.rhythm}, to a click. Chord tones only — say the interval names as you play them.`;
+  chips($('arpReqs'), g.reqArps.map((q, i) => [i, q.l]), S.areq, k => { const q = g.reqArps[+k]; S.areq = +k; S.at = q.t; S.ar = Array.isArray(q.r) ? q.r[0] : q.r; S.af = q.f || 'box'; saveS(); renderArps(); }, 'req');
+  if (!g.arpTypes.includes(S.at)) S.at = g.arpTypes[0];
+  chips($('arpTypes'), g.arpTypes.map(k => [k, CHORDS[k].name]), S.at, k => { S.at = k; S.areq = -1; saveS(); renderArps(); });
+  chips($('arpRoots'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(r => [r, rootName(r)]), S.ar, k => { S.ar = +k; S.areq = -1; saveS(); renderArps(); });
+  chips($('arpFings'), Object.keys(ARP_FINGS).map(k => [k, ARP_FINGS[k]]), S.af, k => { S.af = k; saveS(); renderArps(); });
+  const ch = CHORDS[S.at]; const letters = ch.f.map(iv => IV_LETTER[iv]); const sp = spell(S.ar, letters, ch.f); const nm = nameMap(sp), dg = degMap(sp); let h = '', grid = [];
+  if (S.af === 'four') { grid = arpFourStrings(S.ar, ch.f); h = boardSVG(grid, S.ar, nm, dg, false, {order: true}) + '<p class="note">One note per string so all four ring — the order shown climbs by pitch, the G string where it falls.</p>'; }
+  else if (S.af === 'tenth') { grid = arpBox(S.ar, ch.f, 16); h = boardSVG(grid, S.ar, nm, dg, false) + '<p class="note">Root up to the 3rd above the octave — a compound 10th.</p>'; }
+  else if (S.af === 'pos2') { const f0 = lowestOn(1, S.ar); const g1 = arpBox(S.ar, ch.f, 12); const base2 = OPEN[1] + f0 + 12; const tones = ch.f.map(iv => pc(iv)); const m2 = []; for (let m = base2 - 12 + 5; m <= base2; m++) if (tones.includes(pc(m - base2))) m2.push(m); const g2 = sequential(m2, [1, 2, 3, 0], Math.max(0, f0 + 4), f0 + 9); grid = g1; h = '<div class="lab">Position 1</div>' + boardSVG(g1, S.ar, nm, dg, false) + '<div class="lab">Position 2</div>' + boardSVG(g2, S.ar, nm, dg, false); }
+  else { grid = arpBox(S.ar, ch.f, 12); h = boardSVG(grid, S.ar, nm, dg, false); }
+  const head = `<div class="scale-head"><div><div class="big">${sp[0].name}${ch.suffix} arpeggio</div><div class="spelt">${sp.map(n => n.name).join('  ')}</div><div class="degline">${sp.map(n => n.deg).join('  ')}</div></div><div class="chips"><button class="chip" data-act="run">▶ Run at q=${g.tempo}</button><button class="chip" data-act="strum">Strum the chord</button></div></div>`;
+  $('arpView').innerHTML = head + h; $('arpView').dataset.grid = JSON.stringify(grid);
+}
+function romanChord(keyPc, sym) { const m = sym.match(/^(VII|VI|IV|V|III|II|I)(.*)$/); const deg = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'].indexOf(m[1]); const root = pc(keyPc + MAJOR[deg]); const suf = m[2]; const t = suf === 'm' ? 'min' : suf === '7' ? 'dom7' : suf === 'dim' ? 'dim' : suf === 'maj7' ? 'maj7' : suf === 'm7' ? 'min7' : suf === 'm7b5' ? 'm7b5' : 'maj'; return {root, t}; }
+function renderChords() {
+  const g = G(); $('chordsLead').textContent = `${g.name}: Group C. ${g.chordNote}`;
+  const reqList = g.reqChords.map((q, i) => [i, Array.isArray(q.r) ? CHORDS[q.t].name + ' — ' + q.r.map(rootName).join(' · ') : rootName(q.r) + CHORDS[q.t].suffix + (q.two ? ' ×2' : q.inv ? ' + 1st inv' : '')]);
+  if (g.harmonised) g.harmonised.keys.forEach((k, i) => reqList.push(['h' + i, 'Harmonised ' + rootName(k) + ' major']));
+  chips($('chordReqs'), reqList, S.creq, k => { S.creq = k; if (String(k).startsWith('h')) { S.cmode = 'harm'; S.ckey = g.harmonised.keys[+String(k).slice(1)]; } else { const q = g.reqChords[+k]; S.cmode = q.two ? 'two' : q.inv ? 'inv' : 'one'; S.ct = q.t; S.cr = Array.isArray(q.r) ? q.r[0] : q.r; } saveS(); renderChords(); }, 'req');
+  if (!g.chordTypes.includes(S.ct)) S.ct = g.chordTypes[0];
+  chips($('chordTypes'), g.chordTypes.map(k => [k, CHORDS[k].name]), S.ct, k => { S.ct = k; S.creq = -1; S.cmode = 'free'; saveS(); renderChords(); });
+  chips($('chordRoots'), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11].map(r => [r, rootName(r)]), S.cr, k => { S.cr = +k; S.creq = -1; S.cmode = 'free'; saveS(); renderChords(); });
+  let h = '';
+  const box = (v, name, sub, rootPc) => `<div class="chordbox">${chordSVG(v, name, sub, rootPc)}<div class="cap">${name}</div><div class="sub">${sub}</div><button class="btn" data-strum="${v.midis.join(',')}">▶ Strum</button></div>`;
+  if (S.cmode === 'harm' && g.harmonised) { const key = S.ckey; h += `<h3>Harmonised scale of ${rootName(key)} major</h3><p class="note">Play it as one continuous sequence to the click at q=${g.tempo}${g.harmonised.seq.length > 5 ? ', ascending' : ''}. Barre shapes move up the neck; the root is orange.</p><div class="boxes">`;
+    g.harmonised.seq.forEach(sym => { const c = romanChord(key, sym); const vs = voicings(c.root, CHORDS[c.t].f); const v = vs.find(x => x.lo >= 1 && x.frets.every(f => f > 0)) || vs[0]; if (v) h += box(v, rootName(c.root) + CHORDS[c.t].suffix, sym, c.root); }); h += '</div>'; }
+  else { const ch = CHORDS[S.ct]; const name = rootName(S.cr) + ch.suffix; const sp = spell(S.cr, ch.f.map(iv => IV_LETTER[iv]), ch.f);
+    h += `<div class="scale-head"><div><div class="big">${name}</div><div class="spelt">${sp.map(n => n.name).join('  ')}</div><div class="degline">${sp.map(n => n.deg).join('  ')}</div></div></div><div class="boxes">`;
+    if (S.cmode === 'inv') { const root = inversion(S.cr, ch.f, 0), first = inversion(S.cr, ch.f, ch.f[1]); if (root) h += box(root, name, 'root position', S.cr); if (first) h += box(first, name + '/' + rootName(pc(S.cr + ch.f[1])), 'first inversion', S.cr); }
+    else { const vs = S.cmode === 'two' ? twoPositions(S.cr, ch.f) : voicings(S.cr, ch.f).slice(0, 3); vs.forEach((v, i) => h += box(v, name, i === 0 ? (v.lo <= 1 ? 'open position' : 'lowest shape') : 'position ' + (i + 1), S.cr)); }
+    h += '</div>'; if (S.cmode !== 'two' && S.cmode !== 'inv') h += '<p class="note">Shapes are worked out from the tuning: all four strings sound, root and 3rd always present. The first is the one the book is most likely to show; the others are the next positions up.</p>'; }
+  $('chordView').innerHTML = h;
+}
+let strumTimer = null, strumStep = 0, strumOn = false;
+function renderStrum() {
+  const g = G(); $('strumLead').textContent = `${g.name}: strumming and groove work from Group C, plus useful patterns. Play along with the click at q=${g.tempo} — the highlighted cell is where you should be.`;
+  if (!g.strumIds.includes(S.strum)) S.strum = g.strumIds[0];
+  chips($('strumPats'), g.strumIds.map(k => [k, STRUMS[k].name]), S.strum, k => { S.strum = k; stopStrum(); saveS(); renderStrum(); });
+  chips($('strumChords'), ['maj', 'min', 'dom7', 'maj7', 'min7'].map(k => [k, CHORDS[k].name]), S.strumChord, k => { S.strumChord = k; saveS(); renderStrum(); });
+  $('stBpm').textContent = S.strumBpm; $('strumClick').textContent = 'Click: ' + (S.strumClick ? 'on' : 'off');
+  const p = STRUMS[S.strum]; const cells = p.cells.split(''); const per = p.res === 16 ? 4 : 2;
+  const chordSeq = p.chords || [S.strumChord]; const bars = p.chords ? p.chords.length : 1;
+  let h = `<div class="strum"><div class="cells" style="grid-template-columns:repeat(${cells.length},1fr)">`;
+  cells.forEach((c, i) => { const beat = i % per === 0; const lbl = beat ? String(Math.floor(i / per) + 1) : p.res === 16 ? ['e', '&', 'a'][i % per - 1] : '&'; const sym = c === 'D' ? '↓' : c === 'U' ? '↑' : c === 'x' ? '✕' : c === 'T' ? '↓↓↑' : '·'; h += `<div class="cell ${beat ? 'beat' : ''} ${c === '-' ? 'rest' : ''} ${c === 'x' ? 'mute' : ''}" data-i="${i}">${sym}<small>${lbl}</small></div>`; }); h += '</div></div>';
+  h += `<p class="note">${p.note}${p.swing ? ' Swung: the off-beats sit late, like a triplet.' : ''}${p.chords ? ' Chords: ' + p.chords.map(t => rootName(S.strumRoot || 0) + CHORDS[t].suffix).join(' → ') + ', one bar each.' : ''}</p>`;
+  $('strumView').innerHTML = h;
+}
+function stopStrum() { strumOn = false; clearInterval(strumTimer); $('strumPlay').textContent = '▶ Play'; document.querySelectorAll('.strum .cell').forEach(c => c.classList.remove('now')); }
+function startStrum() { audio(); const p = STRUMS[S.strum]; const cells = p.cells.split(''); const per = p.res === 16 ? 4 : 2; const beatSec = 60 / S.strumBpm; const cellSec = beatSec / per; strumOn = true; $('strumPlay').textContent = '■ Stop';
+  const root = S.strumRoot || 0; const seqTypes = p.chords || [S.strumChord]; const voic = seqTypes.map(t => bestVoicing(root, CHORDS[t].f)); let bar = 0; strumStep = 0; const t0 = audio().currentTime + 0.1;
+  const tick = () => { if (!strumOn) return; const c = audio(); const now = c.currentTime; while (nextT < now + 0.12) { const i = strumStep % cells.length; const sw = p.swing && (i % per !== 0) ? cellSec * 0.33 : 0; const at = nextT + sw - now; const cell = cells[i]; const v = voic[bar % voic.length];
+      if (S.strumClick && i % per === 0) click(at, i === 0);
+      if (cell === 'D') strum(v.midis, at, true, cellSec * 1.6, 0.42); else if (cell === 'U') strum(v.midis, at, false, cellSec * 1.6, 0.34); else if (cell === 'x') chop(at, 0.5); else if (cell === 'T') { strum(v.midis, at, true, cellSec * 0.6, 0.4); strum(v.midis, at + cellSec * 0.66, true, cellSec * 0.6, 0.3); strum(v.midis, at + cellSec * 1.33, false, cellSec * 0.6, 0.3); }
+      const idx = i; setTimeout(() => { document.querySelectorAll('.strum .cell').forEach(x => x.classList.toggle('now', +x.dataset.i === idx)); }, Math.max(0, at * 1000));
+      strumStep++; if (strumStep % cells.length === 0) bar++; nextT += cellSec; } };
+  let nextT = t0; clearInterval(strumTimer); strumTimer = setInterval(tick, 40); tick(); }
+function renderExam() { const g = G(); const e = EXAM[S.grade]; const sc = g.reqScales.map(q => q.l).join(' · '); const ar = g.reqArps.map(q => q.l).join(' · ');
+  $('examView').innerHTML = `<h3>${g.name} — technical work</h3><ul><li><b>Group A scales</b> q=${g.tempo}, ${g.rhythm}: ${sc}</li><li><b>Group B arpeggios</b> q=${g.tempo}, ${g.rhythm}: ${ar}</li><li><b>Group C chords</b>: ${g.chordNote}</li>${S.grade >= 6 ? '<li><b>Group D stylistic study</b>: one study from the book in rock & pop, soul/jazz/blues or ukulele specialist — it sets the style of your Quick Study Piece.</li>' : ''}</ul><h3>Supporting tests</h3><p class="note" style="max-width:70ch">${e[1]}</p><h3>Marks</h3><p class="note">Pieces 20 each, technical 15, supporting tests 10 each, questions 5. Pass 60%, merit 74%, distinction 90%. Exam length: ${['15', '20', '20', '25', '27', '27', '32', '32', '32'][S.grade]} minutes.</p>`; }
+
+/* ================= metronome ================= */
+let mOn = false, mTimer = null, mNext = 0, mBeat = 0, wakeLock = null;
+function renderMnome() { $('mBpm').textContent = S.mBpm; $('mDots').innerHTML = Array.from({length: S.mSig}, (_, i) => `<i class="${i === 0 ? 'one' : ''}"></i>`).join(''); document.querySelectorAll('#mSig .chip').forEach(b => b.classList.toggle('sel', +b.dataset.n === S.mSig)); }
+function mTick() { if (!mOn) return; const c = audio(); const now = c.currentTime; const beatSec = 60 / S.mBpm * (S.mSig === 6 ? 0.5 : 1); while (mNext < now + 0.12) { const b = mBeat % S.mSig; const at = mNext - now; click(at, b === 0 || (S.mSig === 6 && b === 3)); const bb = b; setTimeout(() => { document.querySelectorAll('#mDots i').forEach((d, i) => d.classList.toggle('on', i === bb)); }, Math.max(0, at * 1000)); mBeat++; mNext += beatSec; } }
+async function keepAwake(on) { try { if (on && navigator.wakeLock && !wakeLock) wakeLock = await navigator.wakeLock.request('screen'); if (!on && wakeLock) { await wakeLock.release(); wakeLock = null; } } catch (_) {} }
+function mStart() { audio(); mOn = true; mBeat = 0; mNext = audio().currentTime + 0.1; clearInterval(mTimer); mTimer = setInterval(mTick, 40); mTick(); $('mGo').textContent = 'Stop'; keepAwake(true); }
+function mStop() { mOn = false; clearInterval(mTimer); $('mGo').textContent = 'Start'; document.querySelectorAll('#mDots i').forEach(d => d.classList.remove('on')); keepAwake(false); }
+document.addEventListener('visibilitychange', () => { if (!document.hidden && (mOn || strumOn)) keepAwake(true); });
+
+/* ================= wiring ================= */
+function renderAll() { renderGrades(); renderScales(); renderArps(); renderChords(); renderStrum(); renderExam(); renderMnome(); }
+$('tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.tab = b.dataset.t; saveS(); document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x === b)); document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + S.tab)); if (S.tab !== 'strum') stopStrum(); });
+$('scaleView').addEventListener('click', e => { const t = e.target.closest('[data-m],[data-act]'); if (!t) return; if (t.dataset.m) { pluck(+t.dataset.m, 0, 0.9, 0.5); return; }
+  if (t.dataset.act === 'deg') { S.sdeg = !S.sdeg; } else if (t.dataset.act === 'oct') { S.oct = S.oct === 1 ? 2 : 1; } else if (t.dataset.act === 'run') { const pairs = $('scaleView').dataset.pairs; if (pairs) playPairs(JSON.parse(pairs), G().tempo); else playRun(JSON.parse($('scaleView').dataset.grid || '[]'), G().tempo, G().rhythm.startsWith('eighth')); return; } saveS(); renderScales(); });
+$('arpView').addEventListener('click', e => { const t = e.target.closest('[data-m],[data-act]'); if (!t) return; if (t.dataset.m) { pluck(+t.dataset.m, 0, 0.9, 0.5); return; } if (t.dataset.act === 'run') playRun(JSON.parse($('arpView').dataset.grid || '[]'), G().tempo, G().rhythm.startsWith('eighth')); else if (t.dataset.act === 'strum') { const v = bestVoicing(S.ar, CHORDS[S.at].f); if (v) strum(v.midis, 0, true, 1.6, 0.5); } });
+$('chordView').addEventListener('click', e => { const t = e.target.closest('[data-strum]'); if (!t) return; strum(t.dataset.strum.split(',').map(Number), 0, true, 1.6, 0.5); });
+$('strumPlay').addEventListener('click', () => { if (strumOn) stopStrum(); else startStrum(); });
+$('stDn').addEventListener('click', () => { S.strumBpm = Math.max(40, S.strumBpm - 5); saveS(); $('stBpm').textContent = S.strumBpm; if (strumOn) { stopStrum(); startStrum(); } });
+$('stUp').addEventListener('click', () => { S.strumBpm = Math.min(200, S.strumBpm + 5); saveS(); $('stBpm').textContent = S.strumBpm; if (strumOn) { stopStrum(); startStrum(); } });
+$('strumClick').addEventListener('click', () => { S.strumClick = !S.strumClick; saveS(); renderStrum(); });
+$('mGo').addEventListener('click', () => { mOn ? mStop() : mStart(); });
+[['mDn', -5], ['mDn1', -1], ['mUp1', 1], ['mUp', 5]].forEach(([id, d]) => $(id).addEventListener('click', () => { S.mBpm = Math.max(30, Math.min(240, S.mBpm + d)); saveS(); renderMnome(); }));
+$('mSig').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; S.mSig = +b.dataset.n; mBeat = 0; saveS(); renderMnome(); });
+document.querySelectorAll('#tabs button').forEach(x => x.classList.toggle('on', x.dataset.t === S.tab)); document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'p-' + S.tab));
+renderAll();
+</script>
+<script>if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){addEventListener("load",function(){navigator.serviceWorker.register("./sw.js");});}</script>
+</body>
+</html>

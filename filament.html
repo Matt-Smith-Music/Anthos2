@@ -1,0 +1,2599 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Filament — partial trajectory analyser</title>
+<style>
+:root{
+  --ink:#07131A; --ink2:#0B1C24; --panel:#102530; --panel2:#16333F;
+  --line:#27505E; --line-soft:#1B3C48;
+  --text:#DCEBEF; --muted:#7FA3AE; --dim:#4E7583;
+  --amber:#F2B23E; --amber-dim:#8A6520;
+  --warn:#E8785A; --ok:#5FD3A6;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{
+  background:var(--ink); color:var(--text); font-family:var(--sans);
+  font-size:13px; line-height:1.45; font-variant-numeric:tabular-nums;
+  display:grid; grid-template-rows:auto 1fr auto; overflow:hidden;
+}
+h1{font-size:14px;font-weight:600;letter-spacing:.02em;margin:0}
+h1 span{color:var(--muted);font-weight:400;margin-left:.6em}
+h2{font-size:11.5px;font-weight:600;color:var(--muted);margin:0 0 8px;letter-spacing:.03em}
+p{margin:0 0 8px}
+
+header{
+  display:flex;align-items:center;gap:16px;padding:9px 14px;
+  border-bottom:1px solid var(--line-soft);background:var(--ink2);
+}
+header .spacer{flex:1}
+#status{color:var(--muted);font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+#status.busy{color:var(--amber)}
+#status.bad{color:var(--warn)}
+
+main{display:grid;grid-template-columns:268px minmax(0,1fr) 292px;min-height:0}
+aside{overflow-y:auto;background:var(--panel);padding:12px;scrollbar-width:thin}
+aside.left{border-right:1px solid var(--line-soft)}
+aside.right{border-left:1px solid var(--line-soft)}
+section.stage{position:relative;min-width:0;background:var(--ink);display:flex;flex-direction:column}
+#plotWrap{flex:1;position:relative;min-height:0}
+#plotBar{display:flex;gap:6px;align-items:center;padding:7px 10px;border-top:1px solid var(--line-soft);background:var(--ink2);overflow-x:auto;scrollbar-width:none}
+#plotBar::-webkit-scrollbar{display:none}
+#plotBar button{width:auto;white-space:nowrap;flex:none}
+#plotBar button.on{background:var(--amber);border-color:var(--amber);color:#2A1B00;font-weight:600}
+#boxInfo{color:var(--muted);font-size:11.5px;font-family:var(--mono);white-space:nowrap;flex:none}
+canvas#plot{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:crosshair;touch-action:pinch-zoom}
+#hint{
+  position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+  text-align:center;color:var(--dim);max-width:380px;pointer-events:none;
+}
+#hint strong{display:block;color:var(--muted);font-size:15px;font-weight:600;margin-bottom:6px}
+
+.group{margin-bottom:16px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)}
+.group:last-child{border-bottom:0}
+label.row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 7px;color:var(--muted)}
+label.row .val{color:var(--text);font-family:var(--mono);font-size:11.5px;min-width:44px;text-align:right}
+input[type=range]{width:100%;accent-color:var(--amber);height:18px;margin:0 0 9px}
+select,input[type=number]{
+  width:100%;background:var(--ink2);color:var(--text);border:1px solid var(--line);
+  border-radius:3px;padding:5px 6px;font-family:var(--sans);font-size:12.5px;
+}
+select:focus-visible,input:focus-visible,button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+
+button{
+  font-family:var(--sans);font-size:12.5px;color:var(--text);background:var(--panel2);
+  border:1px solid var(--line);border-radius:3px;padding:7px 10px;cursor:pointer;width:100%;
+}
+button:hover:not(:disabled){background:var(--line)}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--amber);border-color:var(--amber);color:#2A1B00;font-weight:600}
+button.primary:hover:not(:disabled){background:#FFC65A}
+button.sm{padding:5px 8px;font-size:12px}
+.btnrow{display:grid;gap:7px;margin-top:8px}
+
+#progress{height:2px;background:var(--line-soft);margin-top:9px;display:none}
+#progress.on{display:block}
+#progress i{display:block;height:100%;background:var(--amber);width:0%}
+
+.readout{font-family:var(--mono);font-size:11.5px}
+.readout div{display:flex;justify-content:space-between;gap:8px;padding:2.5px 0;border-bottom:1px solid var(--line-soft)}
+.readout div:last-child{border-bottom:0}
+.readout k{color:var(--muted);font-weight:400}
+.readout v{color:var(--text)}
+.readout v.flag{color:var(--warn)}
+.readout v.good{color:var(--ok)}
+
+.mini{width:100%;height:46px;display:block;background:var(--ink2);border:1px solid var(--line-soft);border-radius:3px;margin:4px 0 10px}
+
+#lineList{max-height:34vh;overflow-y:auto;margin:0;padding:0;list-style:none}
+#lineList li{
+  display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:3px;
+  cursor:pointer;border:1px solid transparent;font-size:12.5px;
+}
+#lineList li:hover{background:var(--panel2)}
+#lineList li.sel{border-color:var(--amber);background:var(--panel2)}
+#lineList li .nm{font-weight:600;width:44px}
+#lineList li .meta{color:var(--muted);font-family:var(--mono);font-size:11.5px;flex:1;text-align:right}
+#lineList li .bd{color:var(--amber);font-size:11px}
+#lineList li .ed{color:var(--ok);font-size:11px}
+#groupList{max-height:34vh;overflow-y:auto;margin:0;padding:0;list-style:none}
+#groupList li{
+  display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:3px;
+  cursor:pointer;border:1px solid transparent;
+}
+#groupList li:hover{background:var(--panel2)}
+#groupList li.sel{border-color:var(--amber);background:var(--panel2)}
+#groupList li b{width:9px;height:9px;border-radius:50%;flex:none}
+#groupList li .nm{font-weight:600;width:46px}
+#groupList li .meta{color:var(--muted);font-size:11.5px;font-family:var(--mono);flex:1;text-align:right}
+#groupList li .amb{color:var(--warn);font-size:14px;line-height:1}
+
+#transport{
+  display:flex;align-items:center;gap:10px;padding:8px 12px;
+  border-top:1px solid var(--line-soft);background:var(--ink2);
+}
+#transport button{width:auto;white-space:nowrap}
+#seek{flex:1;accent-color:var(--amber);margin:0}
+#tRead{font-family:var(--mono);font-size:11.5px;color:var(--muted);min-width:96px;text-align:right}
+
+.note{color:var(--dim);font-size:11.5px;line-height:1.5}
+.note b{color:var(--muted);font-weight:600}
+details summary{cursor:pointer;color:var(--muted);font-size:11.5px;padding:2px 0}
+details[open] summary{margin-bottom:8px}
+.empty{color:var(--dim);font-size:12px}
+
+@media (max-width:940px){
+  main{grid-template-columns:1fr;grid-template-rows:minmax(46vh,1fr) auto auto}
+  section.stage{order:1}
+  aside.left{order:2;border-right:0;border-top:1px solid var(--line-soft);max-height:42vh}
+  aside.right{order:3;border-left:0;border-top:1px solid var(--line-soft);max-height:42vh}
+  #status{max-width:38vw}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="anthosBackBar">
+:root{--backbar:44px}
+#appBack{position:fixed;top:0;left:0;right:0;z-index:900;
+  height:calc(var(--backbar) + env(safe-area-inset-top,0px));
+  padding:env(safe-area-inset-top,0px) 14px 0 12px;
+  display:flex;align-items:center;gap:7px;
+  background:rgba(18,16,14,.97);border-bottom:1px solid #2A3136;color:#EEF0F2;
+  font:600 14px/1 ui-sans-serif,system-ui,-apple-system,sans-serif;text-decoration:none}
+#appBack:active{background:#1D2226}
+#appBack .chev{font-size:19px;line-height:1;margin-top:-2px;color:#FFD84D}
+.psLink{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:2147483001;
+  font:700 12px/1 system-ui,sans-serif;color:#FFD84D;text-decoration:none;border:1px solid #2A3136;
+  border-radius:999px;padding:7px 10px;background:#0C0E10;white-space:nowrap}
+body{box-sizing:border-box;padding-top:calc(var(--backbar) + env(safe-area-inset-top,0px))}
+</style>
+</head>
+<body>
+<a id="appBack" href="index.html"><span class="chev">‹</span>All apps</a><a class="psLink" href="practice-schedule.html?app=filament&name=Filament" target="_blank" rel="noopener" title="Practice schedule for this app">Schedule</a>
+
+
+<header>
+  <h1>Filament <span>partial trajectory analyser</span></h1>
+  <div class="spacer"></div>
+  <div id="status">Load audio, or build a test signal to check the tool against a known answer.</div>
+</header>
+
+<main>
+  <aside class="left">
+    <div class="group">
+      <h2>Sound</h2>
+      <div class="btnrow">
+        <button id="btnFile">Choose audio file</button>
+      </div>
+      <input type="file" id="file" accept="audio/*" hidden>
+      <details style="margin-top:10px">
+        <summary>Build a test signal</summary>
+        <label class="row" for="preset">Preset</label>
+        <select id="preset">
+          <option value="single">One note — E2</option>
+          <option value="octave">E2 + E3, both steady</option>
+          <option value="fifth">E2 + B2, both steady</option>
+          <option value="vibsplit">E2 + E3, different vibrato</option>
+          <option value="vibsame">E2 + E3, identical vibrato</option>
+          <option value="triad">C major triad</option>
+          <option value="custom">Custom pair</option>
+        </select>
+        <div id="customPanel" style="display:none;margin-top:10px">
+          <div class="two">
+            <div>
+              <label class="row" for="n1">Note 1<span class="val" id="n1v">E2</span></label>
+              <input type="range" id="n1" min="28" max="84" value="40">
+              <label class="row" for="v1">Vib rate<span class="val" id="v1v">0.0</span></label>
+              <input type="range" id="v1" min="0" max="120" value="0">
+              <label class="row" for="d1">Vib depth<span class="val" id="d1v">0</span></label>
+              <input type="range" id="d1" min="0" max="100" value="0">
+            </div>
+            <div>
+              <label class="row" for="n2">Note 2<span class="val" id="n2v">E3</span></label>
+              <input type="range" id="n2" min="28" max="84" value="52">
+              <label class="row" for="v2">Vib rate<span class="val" id="v2v">0.0</span></label>
+              <input type="range" id="v2" min="0" max="120" value="0">
+              <label class="row" for="d2">Vib depth<span class="val" id="d2v">0</span></label>
+              <input type="range" id="d2" min="0" max="100" value="0">
+            </div>
+          </div>
+          <label class="row" for="nh">Harmonics each<span class="val" id="nhv">10</span></label>
+          <input type="range" id="nh" min="1" max="20" value="10">
+        </div>
+        <div class="btnrow">
+          <button id="btnGen" class="sm">Build signal</button>
+        </div>
+      </details>
+    </div>
+
+    <div class="group">
+      <h2>Analysis</h2>
+      <label class="row" for="win">Window<span class="val" id="winv">8192</span></label>
+      <select id="win">
+        <option value="2048">2048 — sharp in time</option>
+        <option value="4096">4096 — balanced</option>
+        <option value="8192" selected>8192 — sharp in pitch</option>
+        <option value="16384">16384 — bass detail</option>
+      </select>
+      <label class="row" style="margin-top:9px" for="floorDb">Peak floor<span class="val" id="floorDbv">−62 dB</span></label>
+      <input type="range" id="floorDb" min="-100" max="-24" value="-62">
+      <label class="row" for="tolCents">Tracking tolerance<span class="val" id="tolCentsv">70 ¢</span></label>
+      <input type="range" id="tolCents" min="15" max="150" value="70">
+      <label class="row" for="maxGap">Bridge gaps<span class="val" id="maxGapv">5 fr</span></label>
+      <input type="range" id="maxGap" min="0" max="12" value="5">
+      <label class="row" for="minLen">Discard shorter than<span class="val" id="minLenv">6 fr</span></label>
+      <input type="range" id="minLen" min="2" max="40" value="6">
+      <div class="two" style="margin-top:4px">
+        <div><label class="row" for="tStart">Start<span class="val" id="tStartv">0 s</span></label><input type="number" id="tStart" min="0" step="0.1" value="0"></div>
+        <div><label class="row" for="tLen">Length<span class="val" id="tLenv">20 s</span></label><input type="number" id="tLen" min="0.2" step="0.5" value="20"></div>
+      </div>
+      <div class="btnrow">
+        <button id="btnRun" class="primary" disabled>Track partials</button>
+      </div>
+      <div id="progress"><i></i></div>
+    </div>
+
+    <div class="group">
+      <h2>Grouping into notes</h2>
+      <label class="row" for="harmTol">Harmonic tolerance<span class="val" id="harmTolv">25 ¢</span></label>
+      <input type="range" id="harmTol" min="5" max="90" value="25">
+      <label class="row" for="onsetWin">Onset window<span class="val" id="onsetWinv">70 ms</span></label>
+      <input type="range" id="onsetWin" min="10" max="400" value="70">
+      <label class="row" for="minParts">Partials needed<span class="val" id="minPartsv">4</span></label>
+      <input type="range" id="minParts" min="2" max="8" value="4">
+      <div class="btnrow">
+        <button id="btnGroup" disabled>Group into notes</button>
+        <button id="btnMidi" disabled>Download MIDI</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Transcribe a single line</h2>
+      <p class="note" style="margin-bottom:9px">For a solo or riff on its own track — a DI or clean pickup feed, not a mix. One note at a time is the case that genuinely works.</p>
+      <div class="two">
+        <div><label class="row" for="bpm">Tempo</label><input type="number" id="bpm" min="20" max="300" value="120"></div>
+        <div><label class="row" for="grid">Grid</label>
+          <select id="grid">
+            <option value="0">Real timing</option>
+            <option value="2">Eighths</option>
+            <option value="3">Eighth triplets</option>
+            <option value="4" selected>Sixteenths</option>
+            <option value="6">Sixteenth triplets</option>
+          </select></div>
+      </div>
+      <label class="row" style="margin-top:9px" for="lineSens">New-note sensitivity<span class="val" id="lineSensv">50</span></label>
+      <input type="range" id="lineSens" min="5" max="95" value="45">
+      <label class="row" for="lineMin">Shortest note<span class="val" id="lineMinv">70 ms</span></label>
+      <input type="range" id="lineMin" min="20" max="300" value="70">
+      <div class="btnrow">
+        <button id="btnTap" class="sm">Tap tempo</button>
+        <button id="btnLine" disabled>Transcribe the line</button>
+        <button id="btnLineMidi" class="sm" disabled>Download line as MIDI</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>What it has learned from you</h2>
+      <p class="note" id="corrCount">0 corrections recorded</p>
+      <p class="note">Nothing is fitted yet. Every fix you make is stored with the measurements that produced the mistake — pitch, length, attack strength, how far the pitch moved. Once there are enough, those are what a model gets fitted to, and I can show you whether it actually beats the current settings on examples it has not seen.</p>
+      <div class="btnrow">
+        <button id="btnCorrOut" class="sm">Export corrections</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>Display</h2>
+      <label class="row"><span>Piano grid and keyboard</span><input type="checkbox" id="optGrid" checked style="width:auto;accent-color:var(--amber)"></label>
+      <label class="row"><span>Notes as piano-roll blocks</span><input type="checkbox" id="optBlocks" checked style="width:auto;accent-color:var(--amber)"></label>
+      <label class="row"><span>Colour by note group</span><input type="checkbox" id="optColour" checked style="width:auto;accent-color:var(--amber)"></label>
+      <label class="row"><span>Hide ungrouped partials</span><input type="checkbox" id="optOnly" style="width:auto;accent-color:var(--amber)"></label>
+      <label class="row"><span>Hear a partial when tapped</span><input type="checkbox" id="optTap" checked style="width:auto;accent-color:var(--amber)"></label>
+      <label class="row" for="showDb">Hide partials below<span class="val" id="showDbv">−60 dB</span></label>
+      <input type="range" id="showDb" min="-96" max="-6" value="-60">
+      <div class="btnrow"><button id="btnReset" class="sm">Reset view</button></div>
+    </div>
+
+    <div class="group">
+      <h2>Honest limits</h2>
+      <p class="note"><b>Tracking works.</b> Peak picking with parabolic interpolation plus phase-derived frequency puts each partial within a few cents. You can read vibrato straight off the plot.</p>
+      <p class="note"><b>Grouping is crude.</b> Two notes an octave apart with the same onset and no vibrato are genuinely indistinguishable from one note. This app will merge them and say so. Melodyne has the same failure and hands you Note Assignment; here, resynthesise and listen.</p>
+      <p class="note"><b>Distortion defeats it.</b> Intermodulation creates partials belonging to no note.</p>
+      <p class="note"><b>Drums and full mixes.</b> Cymbals, snares and reverb are noise, and noise has no partials to track — you get thousands of short fragments instead. Grouping those into notes is meaningless. Use a box and <i>Hear the audio in it</i> for that material: it filters the original recording rather than rebuilding it, so noise and transients survive intact.</p>
+    </div>
+  </aside>
+
+  <section class="stage">
+    <div id="plotWrap">
+      <canvas id="plot"></canvas>
+      <div id="hint"><strong>Nothing tracked yet</strong>Load a file or build a test signal, then track partials. Drag to pan, scroll to zoom time, shift-scroll for pitch.</div>
+    </div>
+    <div id="plotBar">
+      <button id="btnBox" class="sm">Draw a box</button>
+      <button id="btnHearAudio" class="sm" disabled>Hear the audio in it</button>
+      <button id="btnHearParts" class="sm" disabled>Hear its partials</button>
+      <button id="btnClearBox" class="sm" disabled>Clear</button>
+      <span id="boxInfo"></span>
+    </div>
+  </section>
+
+  <aside class="right">
+    <div class="group">
+      <h2>Selected partial</h2>
+      <div id="trackInfo"><p class="empty">Click a filament on the plot.</p></div>
+    </div>
+    <div class="group" id="linePanel">
+      <h2>The line</h2>
+      <div id="lineEdit"></div>
+      <ul id="lineList"></ul>
+      <p class="empty" id="noLine">Transcribe a line to see it here.</p>
+    </div>
+    <div class="group" id="notesPanel">
+      <h2>Notes found in the mixture</h2>
+      <ul id="groupList"></ul>
+      <p class="empty" id="noGroups">Track partials, then group them.</p>
+    </div>
+  </aside>
+</main>
+
+<div id="transport">
+  <button id="btnPlay" disabled>Play</button>
+  <button id="btnPlaySel" disabled>Play selection</button>
+  <input type="range" id="seek" min="0" max="1000" value="0">
+  <div id="tRead">0.00 / 0.00 s</div>
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+   Filament — sinusoidal modelling / partial trajectory analysis
+   McAulay–Quatieri peak continuation over an STFT, with
+   auditory-grouping cues (common onset, common amplitude
+   envelope, common frequency modulation) used to assemble
+   trajectories into notes.
+   ============================================================ */
+
+const $ = id => document.getElementById(id);
+const clamp = (v,a,b) => v < a ? a : v > b ? b : v;
+const TWO_PI = Math.PI * 2;
+
+/* ---------- radix-2 Cooley–Tukey FFT, in place ---------- */
+function FFT(n){
+  this.n = n;
+  const bits = Math.round(Math.log2(n));
+  this.rev = new Uint32Array(n);
+  for(let i=0;i<n;i++){
+    let r = 0;
+    for(let j=0;j<bits;j++) if(i & (1<<j)) r |= 1 << (bits-1-j);
+    this.rev[i] = r;
+  }
+  const half = n>>1;
+  this.cs = new Float64Array(half);
+  this.sn = new Float64Array(half);
+  for(let i=0;i<half;i++){
+    this.cs[i] = Math.cos(-TWO_PI*i/n);
+    this.sn[i] = Math.sin(-TWO_PI*i/n);
+  }
+}
+FFT.prototype.forward = function(re, im){
+  const n = this.n, rev = this.rev, cs = this.cs, sn = this.sn;
+  for(let i=0;i<n;i++){
+    const j = rev[i];
+    if(j > i){
+      let t = re[i]; re[i] = re[j]; re[j] = t;
+      t = im[i]; im[i] = im[j]; im[j] = t;
+    }
+  }
+  for(let size=2; size<=n; size<<=1){
+    const half = size>>1, step = n/size;
+    for(let i=0;i<n;i+=size){
+      for(let j=i, k=0; j<i+half; j++, k+=step){
+        const c = cs[k], s = sn[k];
+        const xr = re[j+half], xi = im[j+half];
+        const tr = xr*c - xi*s;
+        const ti = xr*s + xi*c;
+        re[j+half] = re[j] - tr;  im[j+half] = im[j] - ti;
+        re[j]     += tr;          im[j]     += ti;
+      }
+    }
+  }
+};
+
+FFT.prototype.inverse = function(re, im){
+  const n = this.n;
+  for(let i=0;i<n;i++) im[i] = -im[i];
+  this.forward(re, im);
+  const k = 1/n;
+  for(let i=0;i<n;i++){ re[i] *= k; im[i] = -im[i]*k; }
+};
+
+/* ---------- pitch helpers ---------- */
+const NAMES = ["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"];
+const midiToHz = m => 440 * Math.pow(2, (m-69)/12);
+const hzToMidi = f => 69 + 12*Math.log2(f/440);
+function noteName(m){ const i=Math.round(m); return NAMES[((i%12)+12)%12] + (Math.floor(i/12)-1); }
+function hzLabel(f){
+  if(!isFinite(f) || f<=0) return "—";
+  const m = hzToMidi(f), r = Math.round(m), c = Math.round((m-r)*100);
+  return noteName(r) + (c>=0?"+":"−") + Math.abs(c) + "¢";
+}
+const cents = (a,b) => 1200 * Math.log2(a/b);
+
+/* ---------- small statistics ---------- */
+function pearson(a, b){
+  const n = Math.min(a.length, b.length);
+  if(n < 4) return 0;
+  let ma=0, mb=0;
+  for(let i=0;i<n;i++){ ma+=a[i]; mb+=b[i]; }
+  ma/=n; mb/=n;
+  let num=0, da=0, db=0;
+  for(let i=0;i<n;i++){
+    const x=a[i]-ma, y=b[i]-mb;
+    num += x*y; da += x*x; db += y*y;
+  }
+  if(da<=0 || db<=0) return 0;
+  return num / Math.sqrt(da*db);
+}
+function median(arr){
+  if(!arr.length) return 0;
+  const s = Float64Array.from(arr).sort();
+  const h = s.length>>1;
+  return s.length%2 ? s[h] : 0.5*(s[h-1]+s[h]);
+}
+function detrend(y){
+  const n = y.length;
+  if(n < 3) return Float64Array.from(y);
+  let sx=0, sy=0, sxx=0, sxy=0;
+  for(let i=0;i<n;i++){ sx+=i; sy+=y[i]; sxx+=i*i; sxy+=i*y[i]; }
+  const den = n*sxx - sx*sx;
+  const m = den === 0 ? 0 : (n*sxy - sx*sy)/den;
+  const c = (sy - m*sx)/n;
+  const out = new Float64Array(n);
+  for(let i=0;i<n;i++) out[i] = y[i] - (m*i + c);
+  return out;
+}
+/* ============================================================
+   State
+   ============================================================ */
+const S = {
+  ctx: null,
+  buffer: null,        // AudioBuffer of the loaded/generated sound
+  mono: null,          // Float32Array, analysed span only
+  sr: 44100,
+  offset: 0,           // seconds into buffer where mono starts
+  frames: [],          // frame times (s)
+  tracks: [],          // partial trajectories
+  groups: [],          // notes
+  sel: null,           // selected track
+  selGroup: null,
+  src: null,           // playing AudioBufferSourceNode
+  playStart: 0,
+  playOffset: 0,
+  playing: false,
+  view: { t0:0, t1:1, f0:55, f1:5000 },
+  box: null, dragBox: null, boxMode: false,
+  flux: null, frameEn: null, onsetEnv: null, line: null, selNote: null, taps: [],
+  corrections: [],
+  name: "untitled"
+};
+
+function setStatus(msg, kind){
+  const el = $("status");
+  el.textContent = msg;
+  el.className = kind || "";
+}
+function audioCtx(){
+  if(!S.ctx) S.ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if(S.ctx.state === "suspended") S.ctx.resume();
+  return S.ctx;
+}
+
+/* ============================================================
+   Loading sound
+   ============================================================ */
+async function loadFile(file){
+  setStatus("Decoding " + file.name + "…", "busy");
+  try{
+    const buf = await file.arrayBuffer();
+    const ctx = audioCtx();
+    S.buffer = await ctx.decodeAudioData(buf);
+    S.sr = S.buffer.sampleRate;
+    S.name = file.name.replace(/\.[^.]+$/, "");
+    afterLoad();
+  }catch(e){
+    setStatus("Could not decode that file. Try WAV, MP3, M4A or FLAC.", "bad");
+  }
+}
+
+function afterLoad(){
+  $("btnRun").disabled = false;
+  $("btnPlay").disabled = false;
+  $("btnLine").disabled = false;
+  S.tracks = []; S.groups = []; S.sel = null; S.selGroup = null;
+  S.line = null; S.selNote = null; S.box = null;
+  $("btnGroup").disabled = true;
+  $("btnMidi").disabled = true;
+  $("btnPlaySel").disabled = true;
+  const d = S.buffer.duration;
+  $("tLen").value = Math.min(20, Math.round(d*10)/10);
+  $("tLenv").textContent = $("tLen").value + " s";
+  renderGroups(); renderTrackInfo(); draw();
+  setStatus(S.name + " — " + d.toFixed(2) + " s at " + S.sr + " Hz. Ready to track.");
+}
+
+/* ---------- synthetic test material ---------- */
+function buildTestSignal(){
+  const ctx = audioCtx();
+  const sr = ctx.sampleRate;
+  const dur = 3.0;
+  const N = Math.floor(sr*dur);
+  const buf = ctx.createBuffer(1, N, sr);
+  const out = buf.getChannelData(0);
+  const nH = +$("nh").value;
+  const p = $("preset").value;
+
+  // voice = { midi, vibRate (Hz), vibDepth (cents), gain, start, harm }
+  let voices, label;
+  if(p === "single"){
+    voices = [{midi:40, r:0, d:0}];
+    label = "Test: single E2";
+  }else if(p === "octave"){
+    voices = [{midi:40, r:0, d:0}, {midi:52, r:0, d:0, gain:0.7}];
+    label = "Test: E2 + E3, no modulation — the hard case";
+  }else if(p === "fifth"){
+    voices = [{midi:40, r:0, d:0}, {midi:47, r:0, d:0, gain:0.7}];
+    label = "Test: E2 + B2, no modulation";
+  }else if(p === "vibsplit"){
+    voices = [{midi:40, r:5.0, d:40}, {midi:52, r:7.4, d:55, gain:0.7}];
+    label = "Test: E2 + E3 with independent vibrato — grouping should separate these";
+  }else if(p === "vibsame"){
+    voices = [{midi:40, r:6.0, d:45}, {midi:52, r:6.0, d:45, gain:0.7}];
+    label = "Test: E2 + E3 with identical vibrato — grouping should fail, and must admit it";
+  }else if(p === "triad"){
+    voices = [{midi:48, r:0, d:0}, {midi:52, r:0, d:0, gain:.8}, {midi:55, r:0, d:0, gain:.8}];
+    label = "Test: C major triad";
+  }else{
+    voices = [
+      {midi:+$("n1").value, r:(+$("v1").value)/10, d:+$("d1").value},
+      {midi:+$("n2").value, r:(+$("v2").value)/10, d:+$("d2").value, gain:0.7}
+    ];
+    label = "Test: custom pair";
+  }
+
+  for(const v of voices){
+    const f0 = midiToHz(v.midi);
+    const g  = (v.gain === undefined ? 1 : v.gain) * 0.26;
+    for(let h=1; h<=nH; h++){
+      const hf = f0*h;
+      if(hf > sr*0.45) break;
+      const amp = g / Math.pow(h, 1.1);
+      let phase = Math.random()*TWO_PI;
+      for(let i=0;i<N;i++){
+        const t = i/sr;
+        // proportional FM: same cents deviation on every partial of this voice
+        const dev = v.d ? v.d * Math.sin(TWO_PI*v.r*t) : 0;
+        const f = hf * Math.pow(2, dev/1200);
+        phase += TWO_PI*f/sr;
+        // gentle attack + slow decay, shared across the voice's partials
+        const env = (1 - Math.exp(-t/0.012)) * Math.exp(-t/2.4);
+        out[i] += amp*env*Math.sin(phase);
+      }
+    }
+  }
+  // headroom
+  let peak = 0;
+  for(let i=0;i<N;i++) peak = Math.max(peak, Math.abs(out[i]));
+  if(peak > 0.98){ const k = 0.98/peak; for(let i=0;i<N;i++) out[i] *= k; }
+
+  S.buffer = buf; S.sr = sr; S.name = "test-" + p;
+  afterLoad();
+  setStatus(label);
+}
+
+/* ============================================================
+   Analysis — STFT, peak picking, MQ peak continuation
+   ============================================================ */
+function hann(n){
+  const w = new Float64Array(n);
+  for(let i=0;i<n;i++) w[i] = 0.5 - 0.5*Math.cos(TWO_PI*i/n);
+  return w;
+}
+
+function prepareMono(){
+  const b = S.buffer;
+  const start = clamp(+$("tStart").value || 0, 0, Math.max(0, b.duration-0.05));
+  const len   = clamp(+$("tLen").value || 1, 0.1, b.duration - start);
+  const i0 = Math.floor(start*b.sampleRate);
+  const n  = Math.floor(len*b.sampleRate);
+  const mono = new Float64Array(n);
+  for(let c=0;c<b.numberOfChannels;c++){
+    const d = b.getChannelData(c);
+    for(let i=0;i<n;i++) mono[i] += d[i0+i];
+  }
+  if(b.numberOfChannels > 1){
+    const k = 1/b.numberOfChannels;
+    for(let i=0;i<n;i++) mono[i] *= k;
+  }
+  S.mono = mono; S.offset = start; S.sr = b.sampleRate;
+  return mono;
+}
+
+/* Analysis runs in time-sliced chunks so the page stays responsive. */
+function analyse(){
+  const N = +$("win").value;
+  const hop = Math.max(256, N >> 3);
+  const sr = S.buffer.sampleRate;
+  const mono = prepareMono();
+  const nFrames = Math.max(1, Math.floor((mono.length - N)/hop) + 1);
+  if(nFrames < 3){ setStatus("That span is too short for this window size.", "bad"); return; }
+
+  const fft = new FFT(N);
+  const w = hann(N);
+  let wsum = 0; for(let i=0;i<N;i++) wsum += w[i];
+  const ampScale = 2/wsum;
+
+  const re = new Float64Array(N), im = new Float64Array(N);
+  const half = N>>1;
+  const mag = new Float64Array(half), db = new Float64Array(half);
+  let prevPhase = new Float64Array(half);
+  let curPhase  = new Float64Array(half);
+
+  const binHz = sr/N;
+  const kMin = Math.max(1, Math.floor(28/binHz));
+  const kMax = Math.min(half-2, Math.ceil(11000/binHz));
+  const floorDb = +$("floorDb").value;
+  const tolC = +$("tolCents").value;
+  const maxGap = +$("maxGap").value;
+  const minLen = +$("minLen").value;
+  const MAXPEAKS = 90;
+  const GUARD = 3;   // bins either side of an accepted peak, ~the resolution limit
+  const MAXJUMP_DB = 12;   // most a single partial's level may move between frames
+
+  const times = new Float64Array(nFrames);
+  const flux = new Float64Array(nFrames);
+  const frameEn = new Float64Array(nFrames);
+  let prevDb = new Float64Array(half);
+  const tracks = [];
+  let active = [];
+  let nextId = 0;
+
+  $("progress").className = "on";
+  const bar = $("progress").firstElementChild;
+  $("btnRun").disabled = true;
+
+  let f = 0;
+  const CHUNK = 24;
+
+  function step(){
+    const end = Math.min(nFrames, f + CHUNK);
+    for(; f < end; f++){
+      const off = f*hop;
+      times[f] = S.offset + (off + N/2)/sr;
+
+      for(let i=0;i<N;i++){ re[i] = mono[off+i]*w[i]; im[i] = 0; }
+      fft.forward(re, im);
+
+      let frameMax = 1e-12;
+      for(let k=0;k<half;k++){
+        const m = Math.hypot(re[k], im[k]);
+        mag[k] = m;
+        curPhase[k] = Math.atan2(im[k], re[k]);
+        if(m > frameMax) frameMax = m;
+      }
+      const cut = 20*Math.log10(frameMax) + floorDb;
+      for(let k=0;k<half;k++) db[k] = 20*Math.log10(mag[k] + 1e-12);
+
+      /* Half-wave rectified spectral flux — energy appearing, not
+         disappearing. This is what marks an attack. */
+      if(f > 0){
+        let fl = 0, en = 0;
+        for(let k=kMin;k<=kMax;k++){
+          const d = db[k] - prevDb[k];
+          if(d > 0) fl += d;
+          en += mag[k]*mag[k];
+        }
+        flux[f] = fl; frameEn[f] = en;
+      }
+      prevDb.set(db);
+
+      /* --- peak picking with parabolic interpolation --- */
+      const peaks = [];
+      for(let k=kMin;k<=kMax;k++){
+        if(db[k] < cut) continue;
+        if(!(mag[k] > mag[k-1] && mag[k] >= mag[k+1])) continue;
+        const a = db[k-1], b = db[k], c = db[k+1];
+        const den = a - 2*b + c;
+        let d = den === 0 ? 0 : 0.5*(a-c)/den;
+        if(!isFinite(d) || Math.abs(d) > 0.5) d = 0;
+        let freq = (k + d)*binHz;
+        const peakDb = b - 0.25*(a-c)*d;
+
+        /* --- refine with phase-vocoder instantaneous frequency --- */
+        if(f > 0){
+          const expected = TWO_PI*hop*k/N;
+          let dphi = curPhase[k] - prevPhase[k] - expected;
+          dphi -= TWO_PI*Math.round(dphi/TWO_PI);
+          const fIf = (k + dphi*N/(TWO_PI*hop))*binHz;
+          if(Math.abs(fIf - freq) < 0.5*binHz && fIf > 0) freq = fIf;
+        }
+        if(freq < 25) continue;
+        peaks.push({ f: freq, a: Math.pow(10, peakDb/20)*ampScale, used:false });
+      }
+      peaks.sort((p,q) => q.a - p.a);
+
+      /* A frequency-modulated partial smears across several bins and shows
+         multiple local maxima. Two peaks closer than the window's resolution
+         limit are not two partials, so the weaker one is discarded. */
+      const kept = [];
+      const taken = new Uint8Array(half + GUARD + 2);
+      for(const p of peaks){
+        const kb = clamp(Math.round(p.f/binHz), 0, half);
+        let clash = false;
+        for(let q=-GUARD; q<=GUARD; q++){
+          if(taken[clamp(kb+q, 0, half+GUARD+1)]){ clash = true; break; }
+        }
+        if(clash) continue;
+        taken[kb] = 1;
+        kept.push(p);
+        if(kept.length >= MAXPEAKS) break;
+      }
+      peaks.length = 0;
+      for(const p of kept) peaks.push(p);
+
+      /* --- McAulay–Quatieri continuation: strongest tracks claim first --- */
+      active.sort((x,y) => y.lastA - x.lastA);
+      for(const tr of active){
+        /* Extrapolate the track's recent pitch slope. Without this, a partial
+           under deep vibrato outruns the match window and the track snaps. */
+        const n = tr.fr.length;
+        let predF = tr.lastF;
+        if(n >= 2){
+          const slope = cents(tr.fr[n-1], tr.fr[n-2]);
+          predF = tr.lastF*Math.pow(2, clamp(slope*0.7, -tolC, tolC)/1200);
+        }
+        let best = null, bestCost = 1;
+        for(const p of peaks){
+          if(p.used) continue;
+          const c = Math.min(Math.abs(cents(p.f, predF)), Math.abs(cents(p.f, tr.lastF)));
+          if(c > tolC) continue;
+          /* A partial's level moves smoothly. A sudden jump means this peak
+             belongs to a new event, not to this trajectory — without this the
+             tail of one note silently becomes the head of the next. */
+          const dDb = Math.abs(20*Math.log10((p.a + 1e-12)/(tr.lastA + 1e-12)));
+          if(dDb > MAXJUMP_DB) continue;
+          const cost = 0.72*(c/tolC) + 0.28*(dDb/MAXJUMP_DB);
+          if(cost < bestCost){ bestCost = cost; best = p; }
+        }
+        if(best){
+          best.used = true;
+          tr.fi.push(f); tr.fr.push(best.f); tr.am.push(best.a);
+          tr.lastF = best.f; tr.lastA = best.a; tr.gap = 0;
+          if(best.a > tr.peakA) tr.peakA = best.a;
+        }else{
+          tr.gap++;
+        }
+      }
+      const survivors = [];
+      for(const tr of active){
+        if(tr.gap > maxGap){ tracks.push(tr); } else survivors.push(tr);
+      }
+      active = survivors;
+
+      for(const p of peaks){
+        if(p.used) continue;
+        let shadowed = false;
+        for(const tr of active){
+          if(Math.abs(cents(p.f, tr.lastF)) < tolC && p.a < tr.lastA*3){ shadowed = true; break; }
+        }
+        if(shadowed) continue;
+        active.push({
+          id: nextId++, fi:[f], fr:[p.f], am:[p.a],
+          lastF:p.f, lastA:p.a, peakA:p.a, gap:0
+        });
+      }
+
+      const t = prevPhase; prevPhase = curPhase; curPhase = t;
+    }
+
+    bar.style.width = (100*f/nFrames).toFixed(1) + "%";
+    if(f < nFrames){
+      setStatus("Tracking… " + Math.round(100*f/nFrames) + "%", "busy");
+      setTimeout(step, 0);
+    }else{
+      for(const tr of active) tracks.push(tr);
+      finish();
+    }
+  }
+
+  function finish(){
+    const kept = tracks.filter(t => t.fr.length >= minLen);
+    kept.sort((a,b) => a.fi[0] - b.fi[0]);
+    for(const t of kept) computeFeatures(t, times, hop/sr);
+    S.frames = times;
+    S.flux = flux;
+    S.frameEn = frameEn;
+    S.line = null; S.selNote = null;
+    S.tracks = kept;
+    S.groups = []; S.sel = null; S.selGroup = null;
+    S.hopSec = hop/sr;
+    S.view = { t0: times[0], t1: times[times.length-1], f0: 55, f1: 5000 };
+    autoRange();
+    $("progress").className = "";
+    $("btnRun").disabled = false;
+    $("btnGroup").disabled = kept.length === 0;
+    $("btnMidi").disabled = true;
+    $("btnLineMidi").disabled = true;
+    renderLine();
+    $("hint").style.display = "none";
+    renderGroups(); renderTrackInfo(); updateBoxUI(); draw();
+    let msg = kept.length + " partials tracked across " + nFrames + " frames ("
+      + (binHz).toFixed(1) + " Hz bins, " + (1000*hop/sr).toFixed(0) + " ms hop).";
+    if(kept.length > 500) msg += " That many usually means drums, reverb or a full mix —"
+      + " grouping those into notes will not mean much. Draw a box instead.";
+    setStatus(msg);
+  }
+
+  setTimeout(step, 0);
+}
+
+/* ---------- per-trajectory features ---------- */
+function computeFeatures(t, times, hopSec){
+  const n = t.fr.length;
+  t.t0 = times[t.fi[0]];
+  t.t1 = times[t.fi[n-1]];
+  t.dur = t.t1 - t.t0;
+  t.medF = median(t.fr);
+  t.midi = hzToMidi(t.medF);
+
+  let energy = 0;
+  for(let i=0;i<n;i++) energy += t.am[i]*t.am[i];
+  t.energy = energy*hopSec;
+
+  // amplitude in dB, and frequency deviation in cents from this track's own centre
+  t.dbEnv = new Float64Array(n);
+  const c = new Float64Array(n);
+  for(let i=0;i<n;i++){
+    t.dbEnv[i] = 20*Math.log10(t.am[i] + 1e-12);
+    c[i] = cents(t.fr[i], t.medF);
+  }
+  t.cents = c;
+  t.mod = detrend(c);
+
+  // vibrato: best-fit sinusoid over 3–12 Hz
+  t.vibRate = 0; t.vibDepth = 0;
+  const span = n*hopSec;
+  if(span > 0.34){
+    let bestA = 0, bestR = 0;
+    for(let r = 3; r <= 12.001; r += 0.1){
+      if(span*r < 1.6) continue;         // need ~1.5 cycles
+      let sa = 0, sb = 0;
+      for(let i=0;i<n;i++){
+        const ph = TWO_PI*r*i*hopSec;
+        sa += t.mod[i]*Math.cos(ph);
+        sb += t.mod[i]*Math.sin(ph);
+      }
+      const amp = 2*Math.hypot(sa, sb)/n;
+      if(amp > bestA){ bestA = amp; bestR = r; }
+    }
+    t.vibRate = bestR; t.vibDepth = bestA;
+  }
+  let rms = 0;
+  for(let i=0;i<n;i++) rms += t.mod[i]*t.mod[i];
+  t.modRms = Math.sqrt(rms/n);
+  t.group = -1;
+}
+
+/* ---------- how alike are two trajectories? ---------- */
+function overlapArrays(a, b, key){
+  const s = Math.max(a.fi[0], b.fi[0]);
+  const e = Math.min(a.fi[a.fi.length-1], b.fi[b.fi.length-1]);
+  if(e - s < 4) return null;
+  const ia = new Map(); a.fi.forEach((f,i) => ia.set(f,i));
+  const ib = new Map(); b.fi.forEach((f,i) => ib.set(f,i));
+  const xa = [], xb = [];
+  for(let f=s; f<=e; f++){
+    const i = ia.get(f), j = ib.get(f);
+    if(i === undefined || j === undefined) continue;
+    xa.push(a[key][i]); xb.push(b[key][j]);
+  }
+  return xa.length >= 5 ? [xa, xb] : null;
+}
+function affinity(a, b){
+  const res = { env:0, mod:0, onset: Math.abs(a.t0 - b.t0), ok:false };
+  const e = overlapArrays(a, b, "dbEnv");
+  if(e) res.env = pearson(e[0], e[1]);
+  const m = overlapArrays(a, b, "mod");
+  if(m){
+    res.mod = pearson(m[0], m[1]);
+    res.modDepth = Math.min(
+      Math.sqrt(m[0].reduce((s,v)=>s+v*v,0)/m[0].length),
+      Math.sqrt(m[1].reduce((s,v)=>s+v*v,0)/m[1].length)
+    );
+  }
+  res.ok = !!(e || m);
+  return res;
+}
+
+/* ============================================================
+   Grouping trajectories into notes
+   Hypothesise an f0, gather trajectories that sit on its
+   harmonic comb AND start with it, then check whether they
+   modulate together. Guard hard against the half-f0 error.
+   ============================================================ */
+function collect(f0, pool, seed, tolC, onsetWin){
+  const byH = new Map();
+  for(const t of pool){
+    if(t.group >= 0) continue;
+    if(Math.abs(t.t0 - seed.t0) > onsetWin) continue;
+    const h = Math.round(t.medF/f0);
+    if(h < 1 || h > 16) continue;
+    const dev = cents(t.medF, h*f0);
+    if(Math.abs(dev) > tolC) continue;
+    const prev = byH.get(h);
+    if(!prev || t.energy > prev.t.energy) byH.set(h, { t, h, dev });
+  }
+  return byH;
+}
+
+function scoreHypothesis(f0, byH, seed){
+  const members = [...byH.values()];
+  if(!members.length) return null;
+  let amp = 0, coh = 0, cohN = 0;
+  for(const m of members){
+    amp += m.t.peakA;
+    if(m.t === seed) continue;
+    const af = affinity(seed, m.t);
+    if(af.ok){
+      const useMod = af.modDepth !== undefined && af.modDepth > 6;
+      coh += useMod ? af.mod : af.env;
+      cohN++;
+    }
+  }
+  const cohere = cohN ? coh/cohN : 0;
+  let score = amp * (0.55 + 0.45*clamp(cohere, 0, 1));
+
+  const hs = members.map(m => m.h);
+  const hMax = Math.max(...hs);
+  const present = new Set(hs);
+
+  /* A harmonic comb with enough teeth will fit almost any three partials by
+     chance. Demanding support near the bottom of the series is what stops
+     the grouper inventing notes out of other notes' upper partials. */
+  if(!hs.some(h => h <= 2)) return null;
+  if(hs.filter(h => h <= 5).length < 2) return null;
+
+  // The classic half-f0 error: if every partial lands on an even
+  // harmonic, the true fundamental is almost certainly 2*f0.
+  if(hs.every(h => h % 2 === 0)) score *= 0.12;
+
+  // A comb with big holes is weak evidence.
+  let hits = 0;
+  for(let h=1; h<=hMax; h++) if(present.has(h)) hits++;
+  score *= 0.35 + 0.65*(hits/hMax);
+
+  /* A root-position major triad is very nearly harmonics 2,3,4,5 of a note
+     two octaves below, so a comb with no fundamental of its own will happily
+     swallow a whole chord. Penalise heavily. */
+  if(!present.has(1)) score *= 0.5;
+  if(!present.has(1) && !present.has(2)) score *= 0.5;
+  if(members.length < 2) score *= 0.5;
+  return { members, score, cohere };
+}
+
+/* Excess level on even harmonics relative to the spectral trend, in dB.
+   Returns null when there are too few partials to fit a trend. */
+function evenHarmonicExcess(members){
+  const pts = members.map(m => ({ h:m.h, db: 20*Math.log10(m.t.peakA + 1e-12) }));
+  const ev = pts.filter(p => p.h % 2 === 0), od = pts.filter(p => p.h % 2 === 1);
+  if(ev.length < 2 || od.length < 2) return null;
+  let sx=0, sy=0, sxx=0, sxy=0;
+  const n = pts.length;
+  for(const p of pts){
+    const x = Math.log2(p.h);
+    sx += x; sy += p.db; sxx += x*x; sxy += x*p.db;
+  }
+  const den = n*sxx - sx*sx;
+  if(Math.abs(den) < 1e-9) return null;
+  const m = (n*sxy - sx*sy)/den, c = (sy - m*sx)/n;
+  const res = p => p.db - (m*Math.log2(p.h) + c);
+  const mean = a => a.reduce((s,p) => s + res(p), 0)/a.length;
+  return mean(ev) - mean(od);
+}
+
+function groupNotes(){
+  const tolC = +$("harmTol").value;
+  const onsetWin = (+$("onsetWin").value)/1000;
+  const minParts = +$("minParts").value;
+  const pool = S.tracks.slice().sort((a,b) => b.energy - a.energy);
+  for(const t of pool){ t.group = -1; t.harm = 0; }
+  const groups = [];
+
+  for(const seed of pool){
+    if(seed.group >= 0) continue;
+    const cands = [];
+    for(let h=1; h<=16; h++){
+      const f0 = seed.medF/h;
+      if(f0 < 27) break;
+      const byH = collect(f0, pool, seed, tolC, onsetWin);
+      const sc = scoreHypothesis(f0, byH, seed);
+      if(sc) cands.push(Object.assign({ f0 }, sc));
+    }
+    if(!cands.length) continue;
+    /* When two hypotheses explain the partials about equally well, the higher
+       fundamental is the safer read — the lower one is usually f0/2. */
+    const top = Math.max(...cands.map(c => c.score));
+    const viable = cands.filter(c => c.score >= top*0.9);
+    const best = viable.reduce((a, b) => b.f0 > a.f0 ? b : a);
+    if(best.members.length < minParts) continue;
+
+    const gi = groups.length;
+    let t0 = Infinity, t1 = -Infinity, peak = 0, energy = 0;
+    for(const m of best.members){
+      m.t.group = gi; m.t.harm = m.h;
+      t0 = Math.min(t0, m.t.t0); t1 = Math.max(t1, m.t.t1);
+      peak = Math.max(peak, m.t.peakA); energy += m.t.energy;
+    }
+
+    /* --- can a note an octave up be hiding in here? --- */
+    const odd  = best.members.filter(m => m.h % 2 === 1).map(m => m.t);
+    const even = best.members.filter(m => m.h % 2 === 0).map(m => m.t);
+    let verdict = "single", evidence = "no octave partials present";
+    if(odd.length && even.length){
+      /* Second line of evidence: a single note's partials fall away smoothly
+         with harmonic number. A note hiding an octave up lifts every even
+         harmonic above that trend. */
+      const excess = evenHarmonicExcess(best.members);
+
+      let sum = 0, n = 0, sawMod = false;
+      for(const a of odd) for(const b of even){
+        const af = affinity(a, b);
+        if(!af.ok) continue;
+        if(af.modDepth !== undefined && af.modDepth > 6){
+          sawMod = true; sum += af.mod; n++;
+        }
+      }
+      if(sawMod && n){
+        const r = sum/n;
+        if(r > 0.7){ verdict = "single"; evidence = "octave partials modulate with the fundamental (r=" + r.toFixed(2) + ")"; }
+        else if(r < 0.3){ verdict = "split"; evidence = "octave partials modulate independently (r=" + r.toFixed(2) + ") — probably two notes"; }
+        else { verdict = "unclear"; evidence = "modulation only partly shared (r=" + r.toFixed(2) + ")"; }
+      }else if(excess !== null && excess > 4.5){
+        verdict = "split";
+        evidence = "even harmonics sit " + excess.toFixed(1) + " dB above the spectral trend — likely a second note an octave up";
+      }else{
+        /* A smooth spectral envelope is NOT evidence against a hidden octave:
+           the second note may simply be quiet. Only vibrato settles this. */
+        verdict = "unclear";
+        evidence = "nothing here can separate one note from two an octave apart"
+          + (excess !== null ? " (even harmonics sit " + excess.toFixed(1) + " dB off the trend, not enough to call it)" : "")
+          + " — vibrato on either note would settle it";
+      }
+    }
+
+    /* Refit f0 across every member (minimising level-weighted error on
+       f_h = h*f0) rather than trusting the seed's own frequency. */
+    let num = 0, den = 0;
+    for(const m of best.members){
+      const wt = m.t.peakA;
+      num += wt*m.h*m.t.medF; den += wt*m.h*m.h;
+    }
+    const f0r = den > 0 ? num/den : best.f0;
+    const midi = Math.round(hzToMidi(f0r));
+    groups.push({
+      i: gi, f0: f0r, midi,
+      t0, t1, peak, energy,
+      members: best.members.sort((a,b) => a.h - b.h),
+      cohere: best.cohere,
+      verdict, evidence
+    });
+  }
+
+  let loudest = 1e-9;
+  for(const t of S.tracks) loudest = Math.max(loudest, t.peakA);
+  const strong = groups.filter(g => 20*Math.log10(g.peak/loudest) > -45);
+  groups.length = 0; groups.push(...strong);
+  groups.sort((a,b) => a.t0 - b.t0 || a.f0 - b.f0);
+  groups.forEach((g,i) => { g.i = i; for(const m of g.members) m.t.group = i; });
+  S.groups = groups;
+  S.selGroup = null;
+  $("btnMidi").disabled = groups.length === 0;
+  renderGroups(); renderTrackInfo(); invalidate(); draw();
+
+  const flagged = groups.filter(g => g.verdict !== "single").length;
+  const ungrouped = S.tracks.filter(t => t.group < 0).length;
+  setStatus(groups.length + " notes assembled, " + ungrouped + " partials left over"
+    + (flagged ? " — " + flagged + " flagged as octave-ambiguous" : "") + ".");
+}
+
+/* ============================================================
+   Additive resynthesis — the only honest way to check a group
+   ============================================================ */
+function resynth(tracks, clip){
+  if(!tracks.length) return null;
+  const ctx = audioCtx();
+  const sr = S.sr;
+  let tmin = Infinity, tmax = -Infinity;
+  for(const t of tracks){ tmin = Math.min(tmin, t.t0); tmax = Math.max(tmax, t.t1); }
+  if(clip){ tmin = Math.max(tmin, clip.t0); tmax = Math.min(tmax, clip.t1); }
+  if(!(tmax > tmin)) return null;
+  const pad = 0.05;
+  const N = Math.max(1024, Math.ceil((tmax - tmin + 2*pad)*sr));
+  const buf = ctx.createBuffer(1, N, sr);
+  const out = buf.getChannelData(0);
+
+  for(const t of tracks){
+    let phase = Math.random()*TWO_PI;
+    for(let k=0; k<t.fr.length-1; k++){
+      const ta = S.frames[t.fi[k]], tb = S.frames[t.fi[k+1]];
+      const ia = Math.round((ta - tmin + pad)*sr);
+      const ib = Math.round((tb - tmin + pad)*sr);
+      if(clip && (tb < clip.t0 || ta > clip.t1)) continue;
+      const span = ib - ia;
+      if(span <= 0 || span > sr) continue;
+      const fa = t.fr[k], fb = t.fr[k+1], aa = t.am[k], ab = t.am[k+1];
+      for(let i=0;i<span;i++){
+        const u = i/span;
+        phase += TWO_PI*(fa + (fb-fa)*u)/sr;
+        const idx = ia + i;
+        if(idx >= 0 && idx < N) out[idx] += (aa + (ab-aa)*u)*Math.sin(phase);
+      }
+    }
+  }
+  const fade = Math.min(512, N>>2);
+  for(let i=0;i<fade;i++){
+    const g = i/fade;
+    out[i] *= g; out[N-1-i] *= g;
+  }
+  let peak = 0;
+  for(let i=0;i<N;i++) peak = Math.max(peak, Math.abs(out[i]));
+  if(peak > 0.95){ const k = 0.95/peak; for(let i=0;i<N;i++) out[i] *= k; }
+  return buf;
+}
+
+/* ============================================================
+   Single-line transcription.
+   One note at a time is a different, far easier problem than a
+   mixture, so it gets its own path: per-frame f0 from the tracked
+   partials, onsets from spectral flux, then segmentation into notes.
+   ============================================================ */
+
+/* Partials present in each frame, as flat arrays for speed. */
+function framePartials(){
+  const n = S.frames.length;
+  const out = new Array(n);
+  for(let i=0;i<n;i++) out[i] = { f:[], a:[] };
+  for(const t of S.tracks){
+    for(let k=0;k<t.fr.length;k++){
+      const fr = out[t.fi[k]];
+      fr.f.push(t.fr[k]); fr.a.push(t.am[k]);
+    }
+  }
+  return out;
+}
+
+/* Line transcription gets its own transform. The partial tracker runs an
+   8192-sample window — 186 ms — which is longer than a sixteenth note at
+   120 bpm, so borrowing its frames makes fast lines unresolvable. */
+function linePitchFrames(){
+  const x = prepareMono();
+  const sr = S.sr, N = 4096, hop = 512;
+  const nf = Math.floor((x.length - N)/hop) + 1;
+  if(nf < 3) return null;
+  const fft = new FFT(N), w = hann(N), half = N >> 1;
+  let wsum = 0; for(let i=0;i<N;i++) wsum += w[i];
+  const ampScale = 2/wsum;
+  const re = new Float64Array(N), im = new Float64Array(N);
+  const mag = new Float64Array(half), db = new Float64Array(half);
+  const binHz = sr/N;
+  const kMin = Math.max(1, Math.floor(60/binHz));
+  const kMax = Math.min(half - 2, Math.ceil(9000/binHz));
+  const times = new Float64Array(nf);
+  const parts = new Array(nf);
+
+  for(let f=0; f<nf; f++){
+    const off = f*hop;
+    times[f] = S.offset + (off + N/2)/sr;
+    for(let i=0;i<N;i++){ re[i] = x[off+i]*w[i]; im[i] = 0; }
+    fft.forward(re, im);
+    let mxm = 1e-12;
+    for(let k=0;k<half;k++){
+      const m = Math.hypot(re[k], im[k]);
+      mag[k] = m; if(m > mxm) mxm = m;
+    }
+    const cut = 20*Math.log10(mxm) - 58;
+    for(let k=0;k<half;k++) db[k] = 20*Math.log10(mag[k] + 1e-12);
+
+    const pk = [];
+    for(let k=kMin;k<=kMax;k++){
+      if(db[k] < cut) continue;
+      if(!(mag[k] > mag[k-1] && mag[k] >= mag[k+1])) continue;
+      const a = db[k-1], b = db[k], c = db[k+1];
+      const den = a - 2*b + c;
+      let d = den === 0 ? 0 : 0.5*(a - c)/den;
+      if(!isFinite(d) || Math.abs(d) > 0.5) d = 0;
+      pk.push({ f:(k + d)*binHz, a: Math.pow(10, (b - 0.25*(a-c)*d)/20)*ampScale, k });
+    }
+    pk.sort((p,q) => q.a - p.a);
+    const fs = [], as = [];
+    const taken = [];
+    for(const p of pk){
+      let clash = false;
+      for(const t of taken) if(Math.abs(p.k - t) <= 3){ clash = true; break; }
+      if(clash) continue;
+      taken.push(p.k); fs.push(p.f); as.push(p.a);
+      if(fs.length >= 30) break;
+    }
+    parts[f] = { f: fs, a: as };
+  }
+  return { times, parts, hop: hop/sr };
+}
+
+/* Score a fundamental by how much partial energy sits on its comb.
+   Weighted 1/sqrt(h) so the low harmonics carry the decision. */
+function combScore(f0, fs, as, tolC){
+  let score = 0, low = 0;
+  for(let i=0;i<fs.length;i++){
+    const h = Math.round(fs[i]/f0);
+    if(h < 1 || h > 16) continue;
+    const dev = Math.abs(cents(fs[i], h*f0));
+    if(dev > tolC) continue;
+    score += as[i]*(1 - dev/tolC)/Math.sqrt(h);
+    if(h <= 2) low += as[i];
+  }
+  return low > 0 ? score : score*0.15;   // no fundamental, weak claim
+}
+
+function frameF0(fr, fLo, fHi, tolC, prevF0, allowJump){
+  const fs = fr.f, as = fr.a;
+  if(!fs.length) return { f0:0, score:0 };
+  /* Between attacks the pitch should not leap. Without this, a note still
+     ringing under a new one pulls the estimate down to a common subharmonic. */
+  const biased = c => {
+    const sc = combScore(c, fs, as, tolC);
+    if(!prevF0 || allowJump) return sc;
+    const d = Math.abs(cents(c, prevF0));
+    if(d < 110) return sc*1.5;
+    if(d > 550) return sc*0.7;
+    return sc;
+  };
+  /* Candidates come from the partials themselves: any of them could be
+     harmonic h of the fundamental. */
+  const cands = [];
+  for(let i=0;i<fs.length;i++){
+    for(let h=1;h<=12;h++){
+      const c = fs[i]/h;
+      if(c >= fLo && c <= fHi) cands.push(c);
+    }
+  }
+  let best = 0, bestScore = 0;
+  for(const c of cands){
+    const sc = biased(c);
+    if(sc > bestScore){ bestScore = sc; best = c; }
+  }
+  if(!best) return { f0:0, score:0 };
+  /* Octave guard: if twice the winner scores nearly as well, take the
+     higher one — a subharmonic always fits everything its multiple does. */
+  for(const mult of [2, 3]){
+    const up = best*mult;
+    if(up > fHi) continue;
+    const su = biased(up);
+    if(su > bestScore*0.82){ best = up; bestScore = su; }
+  }
+  /* Refine by weighted least squares over the partials that support it. */
+  let num = 0, den = 0;
+  for(let i=0;i<fs.length;i++){
+    const h = Math.round(fs[i]/best);
+    if(h < 1 || h > 16) continue;
+    if(Math.abs(cents(fs[i], h*best)) > tolC) continue;
+    num += as[i]*h*fs[i]; den += as[i]*h*h;
+  }
+  return { f0: den > 0 ? num/den : best, score: bestScore };
+}
+
+function medianFilter(arr, w){
+  const n = arr.length, out = new Float64Array(n), buf = [];
+  const h = w >> 1;
+  for(let i=0;i<n;i++){
+    buf.length = 0;
+    for(let j=Math.max(0,i-h); j<=Math.min(n-1,i+h); j++)
+      if(arr[j] > 0) buf.push(arr[j]);
+    if(!buf.length){ out[i] = 0; continue; }
+    buf.sort((a,b)=>a-b);
+    out[i] = buf[buf.length>>1];
+  }
+  return out;
+}
+
+/* Onsets need ~10 ms resolution; partial tracking wants a window 8192
+   samples long. Those are incompatible, so onsets get their own short
+   transform over the same audio rather than reusing the analysis frames. */
+function onsetEnvelope(){
+  const x = S.mono;
+  if(!x) return null;
+  const sr = S.sr, N = 1024, hop = 256;
+  const nf = Math.floor((x.length - N)/hop) + 1;
+  if(nf < 4) return null;
+  const fft = new FFT(N), w = hann(N), half = N >> 1;
+  const re = new Float64Array(N), im = new Float64Array(N);
+  let prev = new Float64Array(half), cur = new Float64Array(half);
+  const flux = new Float64Array(nf), times = new Float64Array(nf);
+  const binHz = sr/N;
+  const kMin = Math.max(1, Math.floor(45/binHz));
+  const kMax = Math.min(half - 1, Math.ceil(9000/binHz));
+
+  for(let f=0; f<nf; f++){
+    const off = f*hop;
+    times[f] = S.offset + (off + N/2)/sr;
+    for(let i=0;i<N;i++){ re[i] = x[off+i]*w[i]; im[i] = 0; }
+    fft.forward(re, im);
+    let fl = 0;
+    for(let k=kMin;k<=kMax;k++){
+      const v = Math.sqrt(Math.hypot(re[k], im[k]));   // compressed magnitude
+      cur[k] = v;
+      const d = v - prev[k];
+      if(d > 0) fl += d;
+    }
+    flux[f] = f ? fl : 0;
+    const t = prev; prev = cur; cur = t;
+  }
+  return { flux, times, hop: hop/sr };
+}
+
+/* Returns onset TIMES, not frame indices — the two grids differ. */
+function detectOnsets(sens){
+  const env = S.onsetEnv || (S.onsetEnv = onsetEnvelope());
+  if(!env) return [];
+  const { flux, times, hop } = env;
+  const n = flux.length;
+  let mx = 0;
+  for(let i=0;i<n;i++) mx = Math.max(mx, flux[i]);
+  if(mx <= 0) return [];
+
+  const win = Math.max(3, Math.round(0.09/hop));
+  const minGap = Math.max(1, Math.round(0.05/hop));
+  /* Sensitivity slides both bars together: how far above the local mean a
+     peak must sit, and how loud it must be overall. */
+  const u = sens/100;
+  const ratio = 2.3 - 1.0*u;
+  const floor = 0.26 - 0.20*u;
+
+  const out = [];
+  let last = -1e9;
+  for(let i=1;i<n-1;i++){
+    if(!(flux[i] >= flux[i-1] && flux[i] > flux[i+1])) continue;
+    if(flux[i] < mx*floor) continue;
+    let sum = 0, cnt = 0;
+    for(let j=Math.max(0,i-win); j<=Math.min(n-1,i+win); j++){ sum += flux[j]; cnt++; }
+    if(flux[i] < (sum/cnt)*ratio) continue;
+    if(i - last < minGap) continue;
+    last = i;
+    out.push({ t: times[i], s: flux[i]/mx });
+  }
+  /* A note that begins on the first sample has no previous frame to differ
+     from, so the flux never sees it. Seed one if the audio starts loud. */
+  if(!out.length || out[0].t - times[0] > 0.045){
+    let e0 = 0;
+    for(let i=0;i<Math.min(n,6);i++) e0 = Math.max(e0, flux[i]);
+    if(e0 > mx*0.02 || !out.length) out.unshift({ t: times[0], s: 0.9 });
+  }
+  return out;
+}
+
+function transcribeLine(){
+  if(!S.buffer) return;
+  const sens = +$("lineSens").value;
+  const grid = linePitchFrames();
+  if(!grid){ setStatus("That span is too short to transcribe.", "bad"); return; }
+  const { times, parts, hop } = grid;
+  const n = times.length;
+  const minFrames = Math.max(2, Math.round((+$("lineMin").value)/1000/hop));
+
+  /* Onsets first: they tell the pitch estimator where a leap is allowed. */
+  S.onsetEnv = null;
+  const onsets = detectOnsets(sens);
+  const onsetAt = new Float64Array(n), onsetStr = new Float64Array(n);
+  for(const o of onsets){
+    let lo = 0, hi = n - 1, idx = -1;
+    while(lo <= hi){
+      const m = (lo + hi) >> 1;
+      if(times[m] >= o.t){ idx = m; hi = m - 1; } else lo = m + 1;
+    }
+    if(idx >= 0 && o.s > onsetStr[idx]){ onsetAt[idx] = o.t; onsetStr[idx] = o.s; }
+  }
+
+  const raw = new Float64Array(n), conf = new Float64Array(n);
+  let prevF0 = 0;
+  for(let i=0;i<n;i++){
+    const jump = !!onsetAt[i] || (i > 0 && !!onsetAt[i-1]);
+    const r = frameF0(parts[i], 70, 1400, 45, prevF0, jump);
+    raw[i] = r.f0; conf[i] = r.score;
+    if(r.f0) prevF0 = r.f0;
+  }
+  const f0 = medianFilter(raw, 3);
+
+  let cMax = 1e-12;
+  for(let i=0;i<n;i++) cMax = Math.max(cMax, conf[i]);
+  const voiceCut = cMax*Math.pow(10, -34/20);
+  const voiced = new Uint8Array(n);
+  for(let i=0;i<n;i++) voiced[i] = (f0[i] > 0 && conf[i] > voiceCut) ? 1 : 0;
+
+  const semi = new Float64Array(n);
+  for(let i=0;i<n;i++) semi[i] = voiced[i] ? Math.round(hzToMidi(f0[i])) : -1;
+
+  /* Pitch change is the reliable boundary. An attack only splits a run when
+     it is strong enough to be a genuine restrike of the same note —
+     otherwise one stray flux bump chops a held note into pieces. */
+  let strongest = 0;
+  for(const o of onsets) strongest = Math.max(strongest, o.s);
+  const restrike = strongest*0.45;
+
+  const notes = [];
+  let i = 0;
+  while(i < n){
+    if(!voiced[i]){ i++; continue; }
+    const startI = i;
+    const pitch0 = semi[i];
+    let j = i + 1;
+    while(j < n && voiced[j] && semi[j] === pitch0){
+      if(onsetStr[j] >= restrike) break;
+      j++;
+    }
+    const len = j - startI;
+    if(len >= minFrames){
+      const skip = Math.min(len - 1, Math.max(1, Math.round(0.03/hop)));
+      const seg = [];
+      for(let k=startI+skip;k<j;k++) if(f0[k] > 0) seg.push(f0[k]);
+      const mf = seg.length ? median(seg) : f0[startI];
+      let lo = Infinity, hi = -Infinity, amp = 0;
+      for(let k=startI;k<j;k++){
+        if(f0[k] > 0){ lo = Math.min(lo, f0[k]); hi = Math.max(hi, f0[k]); }
+        amp = Math.max(amp, conf[k]);
+      }
+      const range = (isFinite(lo) && hi > 0) ? Math.round(cents(hi, lo)) : 0;
+      const m = hzToMidi(mf);
+      /* Use the precise attack time when one lines up with this note's start. */
+      let struck = 0;
+      for(const o of onsets){
+        const d = o.t - times[startI];
+        if(d > -0.075 && d < 0.045 && o.s > strongest*0.2){ struck = o.t; break; }
+      }
+      notes.push({
+        i0: startI, i1: j,
+        t0: struck || times[startI],
+        t1: times[j-1] + hop,
+        hz: mf, midi: Math.round(m), cents: Math.round((m - Math.round(m))*100),
+        range, amp, attack: !!struck, bend: range > 80, edited: false
+      });
+    }
+    i = j;
+  }
+  for(let k=0;k<notes.length-1;k++)
+    if(notes[k].t1 > notes[k+1].t0) notes[k].t1 = notes[k+1].t0;
+
+  const onsetTimes = onsets.map(o => o.t);
+  S.line = { notes, f0, voiced, conf, onsets: onsetTimes, times, hop };
+  quantiseLine();
+  $("btnLineMidi").disabled = notes.length === 0;
+  S.selNote = null;
+  invalidate(); renderLine(); draw();
+  const bent = notes.filter(x => x.bend).length;
+  const legato = notes.filter(x => !x.attack).length;
+  setStatus(notes.length + " notes from " + onsetTimes.length + " attacks"
+    + (legato ? ", " + legato + " with no attack of their own (legato or slide)" : "")
+    + (bent ? ", " + bent + " where the pitch moves over a semitone" : "")
+    + ". Tap each one to hear it.");
+}
+
+function quantiseLine(){
+  if(!S.line) return;
+  const div = +$("grid").value;
+  const bpm = clamp(+$("bpm").value || 120, 20, 300);
+  for(const nt of S.line.notes){
+    if(!div){ nt.qt0 = nt.t0; nt.qt1 = nt.t1; continue; }
+    const step = 60/bpm/div;
+    const base = S.line.notes.length ? S.line.notes[0].t0 : S.line.times[0];
+    nt.qt0 = base + Math.round((nt.t0 - base)/step)*step;
+    nt.qt1 = base + Math.max(Math.round((nt.t0 - base)/step) + 1,
+                             Math.round((nt.t1 - base)/step))*step;
+  }
+}
+
+/* ============================================================
+   Corrections — the training data for anything that learns later.
+   Nothing is fitted yet: a model trained on no examples would be
+   theatre. This records what you actually changed and why.
+   ============================================================ */
+function logCorrection(op, nt, extra){
+  const rec = Object.assign({
+    op, at: Date.now(),
+    hz: nt ? +nt.hz.toFixed(2) : null,
+    midi: nt ? nt.midi : null,
+    durMs: nt ? Math.round((nt.t1 - nt.t0)*1000) : null,
+    rangeCents: nt ? nt.range : null,
+    hadAttack: nt ? !!nt.attack : null,
+    amp: nt ? +nt.amp.toFixed(5) : null
+  }, extra || {});
+  S.corrections.push(rec);
+  try{
+    localStorage.setItem("filament.corrections", JSON.stringify(S.corrections.slice(-4000)));
+  }catch(e){ /* private browsing, or full — keep them in memory for this session */ }
+  updateCorrectionCount();
+}
+function updateCorrectionCount(){
+  const el = $("corrCount");
+  if(el) el.textContent = S.corrections.length + " correction" + (S.corrections.length === 1 ? "" : "s") + " recorded";
+}
+function loadCorrections(){
+  try{
+    const raw = localStorage.getItem("filament.corrections");
+    S.corrections = raw ? JSON.parse(raw) : [];
+  }catch(e){ S.corrections = []; }
+  updateCorrectionCount();
+}
+function exportCorrections(){
+  const blob = new Blob([JSON.stringify(S.corrections, null, 1)], { type:"application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "filament-corrections.json";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ============================================================
+   Isolating a region of the ORIGINAL recording.
+   Additive resynthesis can only rebuild what the model captured, and a
+   snare is noise — there is nothing sinusoidal in it to rebuild. So for
+   "let me hear that part", filter the recording instead: short-time
+   Fourier transform, zero everything outside the box, transform back.
+   Noise, transients and reverb all survive because they were never
+   thrown away.
+   ============================================================ */
+function isolateAudio(box){
+  const b = S.buffer;
+  if(!b) return null;
+  const sr = b.sampleRate;
+  const N = 2048, hop = N >> 2;
+  const pad = 0.06;
+  const i0 = Math.max(0, Math.floor((box.t0 - pad)*sr));
+  const i1 = Math.min(b.length, Math.ceil((box.t1 + pad)*sr));
+  const len = i1 - i0;
+  if(len < N*2) return null;
+
+  const x = new Float64Array(len);
+  for(let c=0;c<b.numberOfChannels;c++){
+    const d = b.getChannelData(c);
+    for(let i=0;i<len;i++) x[i] += d[i0+i];
+  }
+  if(b.numberOfChannels > 1){
+    const k = 1/b.numberOfChannels;
+    for(let i=0;i<len;i++) x[i] *= k;
+  }
+
+  const fft = new FFT(N), w = hann(N);
+  const out = new Float64Array(len), nrm = new Float64Array(len);
+  const re = new Float64Array(N), im = new Float64Array(N);
+  const binHz = sr/N, half = N >> 1;
+  const kLo = box.f0/binHz, kHi = box.f1/binHz;
+  const edgeBins = 2, edgeSec = 0.035;   // tapers, or the edges ring
+
+  for(let off=0; off + N <= len; off += hop){
+    for(let i=0;i<N;i++) nrm[off+i] += w[i]*w[i];
+    const tc = (i0 + off + N/2)/sr;
+    let gt = 1;
+    if(tc < box.t0) gt = 1 - (box.t0 - tc)/edgeSec;
+    else if(tc > box.t1) gt = 1 - (tc - box.t1)/edgeSec;
+    gt = clamp(gt, 0, 1);
+    if(gt <= 0) continue;
+
+    for(let i=0;i<N;i++){ re[i] = x[off+i]*w[i]; im[i] = 0; }
+    fft.forward(re, im);
+    for(let k=0;k<=half;k++){
+      let g;
+      if(k >= kLo && k <= kHi) g = 1;
+      else if(k < kLo) g = 1 - (kLo - k)/edgeBins;
+      else g = 1 - (k - kHi)/edgeBins;
+      g = clamp(g, 0, 1)*gt;
+      re[k] *= g; im[k] *= g;
+      if(k > 0 && k < half){ re[N-k] *= g; im[N-k] *= g; }
+    }
+    fft.inverse(re, im);
+    for(let i=0;i<N;i++) out[off+i] += re[i]*w[i];
+  }
+  for(let i=0;i<len;i++) if(nrm[i] > 1e-9) out[i] /= nrm[i];
+
+  const ctx = audioCtx();
+  const buf = ctx.createBuffer(1, len, sr);
+  const o = buf.getChannelData(0);
+  let peak = 0;
+  for(let i=0;i<len;i++){ o[i] = out[i]; peak = Math.max(peak, Math.abs(out[i])); }
+  if(peak > 0.95){ const k = 0.95/peak; for(let i=0;i<len;i++) o[i] *= k; }
+  return buf;
+}
+
+function tracksInBox(box){
+  const res = [];
+  for(const t of S.tracks){
+    for(let k=0;k<t.fr.length;k++){
+      const tt = S.frames[t.fi[k]];
+      if(tt >= box.t0 && tt <= box.t1 && t.fr[k] >= box.f0 && t.fr[k] <= box.f1){
+        res.push(t); break;
+      }
+    }
+  }
+  return res;
+}
+
+const nearestNote = f => noteName(Math.round(hzToMidi(f)));
+
+function updateBoxUI(){
+  const on = !!S.box;
+  $("btnHearAudio").disabled = !on || !S.buffer;
+  $("btnHearParts").disabled = !on || !S.tracks.length;
+  $("btnClearBox").disabled = !on;
+  $("boxInfo").textContent = on
+    ? (S.box.t1 - S.box.t0).toFixed(2) + "s · " + nearestNote(S.box.f0) + "–" + nearestNote(S.box.f1)
+    : "";
+  draw();
+}
+
+/* ============================================================
+   MIDI file
+   ============================================================ */
+function vlq(n){
+  n = Math.max(0, Math.round(n));
+  const out = [n & 0x7f];
+  n = Math.floor(n/128);
+  while(n > 0){ out.unshift((n & 0x7f) | 0x80); n = Math.floor(n/128); }
+  return out;
+}
+function str4(s){ return [s.charCodeAt(0), s.charCodeAt(1), s.charCodeAt(2), s.charCodeAt(3)]; }
+function be32(n){ return [(n>>>24)&255, (n>>>16)&255, (n>>>8)&255, n&255]; }
+function be16(n){ return [(n>>>8)&255, n&255]; }
+
+function exportMidi(){
+  if(!S.groups.length) return;
+  const TPQ = 480, BPM = 120;
+  const toTicks = s => Math.round(s*TPQ*BPM/60);
+  let maxPeak = 1e-9;
+  for(const g of S.groups) maxPeak = Math.max(maxPeak, g.peak);
+
+  const ev = [];
+  for(const g of S.groups){
+    const rel = 20*Math.log10(g.peak/maxPeak);
+    const vel = clamp(Math.round(127*Math.pow(10, clamp(rel, -48, 0)/40)), 12, 127);
+    const on = toTicks(g.t0 - S.offset);
+    const off = Math.max(on + 24, toTicks(g.t1 - S.offset));
+    ev.push({ t:on,  s:0x90, a:clamp(g.midi,0,127), b:vel });
+    ev.push({ t:off, s:0x80, a:clamp(g.midi,0,127), b:0 });
+  }
+  ev.sort((x,y) => x.t - y.t || x.s - y.s);
+
+  const body = [];
+  body.push(0x00, 0xFF, 0x51, 0x03, 0x07, 0xA1, 0x20);    // 500000 µs/quarter
+  body.push(0x00, 0xFF, 0x58, 0x04, 0x04, 0x02, 0x18, 0x08); // 4/4
+  let last = 0;
+  for(const e of ev){
+    body.push(...vlq(e.t - last));
+    body.push(e.s, e.a, e.b);
+    last = e.t;
+  }
+  body.push(0x00, 0xFF, 0x2F, 0x00);
+
+  const bytes = [
+    ...str4("MThd"), ...be32(6), ...be16(0), ...be16(1), ...be16(TPQ),
+    ...str4("MTrk"), ...be32(body.length), ...body
+  ];
+  const blob = new Blob([new Uint8Array(bytes)], { type:"audio/midi" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = S.name + ".mid";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  setStatus("Wrote " + S.groups.length + " notes to " + a.download + " at 120 bpm.");
+}
+
+/* ============================================================
+   Plot
+   ============================================================ */
+const cv = $("plot"), gx = cv.getContext("2d");
+const offC = document.createElement("canvas"), offG = offC.getContext("2d");
+let W = 1, H = 1, dpr = 1, dirty = true, hover = null;
+
+function invalidate(){ dirty = true; }
+function resize(){
+  const r = $("plotWrap").getBoundingClientRect();
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  W = Math.max(1, Math.floor(r.width));
+  H = Math.max(1, Math.floor(r.height));
+  cv.width = Math.floor(W*dpr); cv.height = Math.floor(H*dpr);
+  offC.width = cv.width; offC.height = cv.height;
+  invalidate(); draw();
+}
+const PL = 30;   // left gutter holding the keyboard
+const X  = t => PL + (t - S.view.t0)/(S.view.t1 - S.view.t0)*(W - PL);
+const Xi = x => S.view.t0 + (x - PL)/(W - PL)*(S.view.t1 - S.view.t0);
+const Y  = f => {
+  const a = Math.log2(S.view.f0), b = Math.log2(S.view.f1);
+  return H*(1 - (Math.log2(f) - a)/(b - a));
+};
+const Yi = y => {
+  const a = Math.log2(S.view.f0), b = Math.log2(S.view.f1);
+  return Math.pow(2, a + (1 - y/H)*(b - a));
+};
+
+function autoRange(){
+  if(!S.tracks.length) return;
+  const fs = [];
+  for(const t of S.tracks) fs.push(t.medF);
+  fs.sort((a,b) => a-b);
+  const lo = fs[Math.floor(fs.length*0.01)] || 60;
+  const hi = fs[Math.floor(fs.length*0.985)] || 4000;
+  S.view.f0 = clamp(lo/1.5, 24, 2000);
+  S.view.f1 = clamp(hi*1.5, S.view.f0*4, 16000);
+  S.view.t0 = S.frames[0];
+  S.view.t1 = S.frames[S.frames.length-1];
+}
+
+const hueFor = i => (i*67 + 190) % 360;
+
+const BLACK = [1,3,6,8,10];
+const isBlack = m => BLACK.indexOf(((m % 12) + 12) % 12) >= 0;
+
+function drawGrid(c){
+  const semis = Math.log2(S.view.f1/S.view.f0)*12;
+  const laneH = H/semis;
+  const mLo = Math.floor(hzToMidi(S.view.f0)) - 1;
+  const mHi = Math.ceil(hzToMidi(S.view.f1)) + 1;
+  const fine = laneH >= 3.5 && $("optGrid").checked;
+  c.font = "10px " + getComputedStyle(document.body).fontFamily;
+  c.textBaseline = "middle";
+
+  if(fine){
+    /* One lane per semitone, shaded like a keyboard so pitch is readable
+       off the plot without counting octaves. */
+    for(let m = mLo; m <= mHi; m++){
+      const yT = Y(midiToHz(m + 0.5)), yB = Y(midiToHz(m - 0.5));
+      if(yB < -2 || yT > H + 2) continue;
+      if(!isBlack(m)){
+        c.fillStyle = "rgba(255,255,255,0.030)";
+        c.fillRect(PL, yT, W - PL, yB - yT);
+      }
+      if(((m % 12) + 12) % 12 === 0){
+        c.strokeStyle = "rgba(39,80,94,0.8)"; c.lineWidth = 1;
+        c.beginPath(); c.moveTo(PL, yB); c.lineTo(W, yB); c.stroke();
+      }
+    }
+  }else{
+    for(let m = mLo; m <= mHi; m++){
+      if(((m % 12) + 12) % 12 !== 0) continue;
+      const y = Y(midiToHz(m));
+      if(y < -4 || y > H + 4) continue;
+      c.strokeStyle = "rgba(39,80,94,0.85)"; c.lineWidth = 1;
+      c.beginPath(); c.moveTo(PL, y); c.lineTo(W, y); c.stroke();
+    }
+  }
+
+  /* time ruler */
+  const span = S.view.t1 - S.view.t0;
+  const stp = [0.05,0.1,0.25,0.5,1,2,5,10,30].find(v => span/v < 12) || 60;
+  c.strokeStyle = "rgba(27,60,72,0.65)"; c.fillStyle = "#4E7583";
+  for(let t = Math.ceil(S.view.t0/stp)*stp; t <= S.view.t1; t += stp){
+    const x = X(t);
+    if(x < PL) continue;
+    c.beginPath(); c.moveTo(x, 0); c.lineTo(x, H); c.stroke();
+    c.fillText(t.toFixed(stp < 1 ? 2 : 1) + "s", x + 4, H - 9);
+  }
+
+  /* keyboard gutter */
+  c.fillStyle = "#0B1C24"; c.fillRect(0, 0, PL, H);
+  if(fine){
+    for(let m = mLo; m <= mHi; m++){
+      const yT = Y(midiToHz(m + 0.5)), yB = Y(midiToHz(m - 0.5));
+      if(yB < -2 || yT > H + 2) continue;
+      const bk = isBlack(m);
+      c.fillStyle = bk ? "#122A34" : "#C3D8DE";
+      c.fillRect(0, yT, bk ? PL - 10 : PL - 3, Math.max(1, yB - yT - (laneH > 6 ? 1 : 0)));
+      if(!bk && ((m % 12) + 12) % 12 === 0 && laneH >= 9){
+        c.fillStyle = "#33525C";
+        c.fillText(noteName(m), 3, (yT + yB)/2);
+      }
+    }
+  }else{
+    for(let m = mLo; m <= mHi; m++){
+      if(((m % 12) + 12) % 12 !== 0) continue;
+      const y = Y(midiToHz(m));
+      if(y < -6 || y > H + 6) continue;
+      c.fillStyle = "#4E7583";
+      c.fillText(noteName(m), 3, y - 7);
+    }
+  }
+  c.strokeStyle = "#27505E"; c.lineWidth = 1;
+  c.beginPath(); c.moveTo(PL + .5, 0); c.lineTo(PL + .5, H); c.stroke();
+}
+
+function drawLine(c){
+  const L = S.line;
+  if(!L) return;
+  /* Quantised notes as blocks, with the real pitch curve over them so you
+     can see exactly where quantising told a lie. */
+  for(let i=0;i<L.notes.length;i++){
+    const nt = L.notes[i];
+    const yT = Y(midiToHz(nt.midi + 0.46)), yB = Y(midiToHz(nt.midi - 0.46));
+    const x0 = Math.max(PL, X(nt.qt0)), x1 = X(nt.qt1);
+    if(x1 < PL || x0 > W) continue;
+    const sel = i === S.selNote;
+    c.fillStyle = sel ? "rgba(242,178,62,0.42)"
+                      : nt.edited ? "rgba(95,211,166,0.24)" : "rgba(140,200,220,0.20)";
+    c.fillRect(x0, yT, Math.max(2, x1 - x0), Math.max(2, yB - yT));
+    c.strokeStyle = sel ? "#F2B23E" : nt.edited ? "#5FD3A6" : "rgba(160,215,235,0.8)";
+    c.lineWidth = sel ? 1.6 : 1;
+    c.strokeRect(x0 + .5, yT + .5, Math.max(2, x1 - x0), Math.max(2, yB - yT));
+  }
+  c.strokeStyle = "rgba(242,178,62,0.9)";
+  c.lineWidth = 1.4;
+  c.beginPath();
+  let pen = false;
+  for(let i=0;i<L.f0.length;i++){
+    if(!L.voiced[i] || !L.f0[i]){ pen = false; continue; }
+    const x = X(L.times[i]), y = Y(L.f0[i]);
+    if(x < PL){ pen = false; continue; }
+    if(!pen){ c.moveTo(x, y); pen = true; } else c.lineTo(x, y);
+  }
+  c.stroke();
+}
+
+function drawNoteBlocks(c){
+  if(!$("optBlocks").checked || !S.groups.length) return;
+  for(const g of S.groups){
+    const yT = Y(midiToHz(g.midi + 0.46)), yB = Y(midiToHz(g.midi - 0.46));
+    const x0 = Math.max(PL, X(g.t0)), x1 = X(g.t1);
+    if(x1 < PL || x0 > W) continue;
+    const sel = g.i === S.selGroup;
+    c.fillStyle = sel ? "rgba(242,178,62,0.30)"
+                      : "hsla(" + hueFor(g.i) + ",66%,56%,0.20)";
+    c.fillRect(x0, yT, Math.max(2, x1 - x0), Math.max(2, yB - yT));
+    c.strokeStyle = sel ? "#F2B23E" : "hsla(" + hueFor(g.i) + ",66%,62%,0.75)";
+    c.lineWidth = 1;
+    c.strokeRect(x0 + .5, yT + .5, Math.max(2, x1 - x0), Math.max(2, yB - yT));
+  }
+}
+
+const LEVELS = 9;
+function renderOff(){
+  const c = offG;
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c.clearRect(0, 0, W, H);
+  c.fillStyle = "#07131A"; c.fillRect(0, 0, W, H);
+  drawGrid(c);
+  drawNoteBlocks(c);
+  if(!S.tracks.length){ drawLine(c); dirty = false; return; }
+
+  let gPeak = 1e-9;
+  for(const t of S.tracks) gPeak = Math.max(gPeak, t.peakA);
+  const colourOn = $("optColour").checked;
+  const onlyGrouped = $("optOnly").checked;
+  const showDb = +$("showDb").value;
+
+  const buckets = new Map();
+  const addSeg = (key, x0, y0, x1, y1) => {
+    let p = buckets.get(key);
+    if(!p){ p = new Path2D(); buckets.set(key, p); }
+    p.moveTo(x0, y0); p.lineTo(x1, y1);
+  };
+
+  for(const t of S.tracks){
+    if(onlyGrouped && t.group < 0) continue;
+    if(20*Math.log10(t.peakA/gPeak) < showDb) continue;
+    if(t === S.sel) continue;
+    const inSelGroup = S.selGroup !== null && t.group === S.selGroup;
+    let key0;
+    if(colourOn && t.group >= 0) key0 = "h" + hueFor(t.group) + (inSelGroup ? "s" : "");
+    else key0 = inSelGroup ? "hs" : "n";
+    for(let k=0; k<t.fr.length-1; k++){
+      const ta = S.frames[t.fi[k]], tb = S.frames[t.fi[k+1]];
+      const x0 = X(ta), x1 = X(tb);
+      if((x0 < -2 && x1 < -2) || (x0 > W+2 && x1 > W+2)) continue;
+      const y0 = Y(t.fr[k]), y1 = Y(t.fr[k+1]);
+      if((y0 < -2 && y1 < -2) || (y0 > H+2 && y1 > H+2)) continue;
+      const relDb = 20*Math.log10((t.am[k] + 1e-12)/gPeak);
+      if(relDb < showDb) continue;
+      const lvl = clamp(Math.floor((relDb - showDb)/(-showDb || 1)*LEVELS), 0, LEVELS-1);
+      addSeg(key0 + "|" + lvl, x0, y0, x1, y1);
+    }
+  }
+
+  c.lineCap = "round";
+  for(const [key, path] of buckets){
+    const [kc, kl] = key.split("|");
+    const lvl = +kl, u = (lvl + 1)/LEVELS;
+    const alpha = 0.07 + 0.93*Math.pow(u, 1.6);
+    const lw = 0.6 + 2.0*Math.pow(u, 2);
+    if(kc === "n"){
+      c.strokeStyle = "rgba(120,186,204," + alpha.toFixed(3) + ")";
+    }else if(kc === "hs"){
+      c.strokeStyle = "rgba(242,178,62," + alpha.toFixed(3) + ")";
+    }else{
+      const sel = kc.endsWith("s");
+      const hue = parseFloat(kc.slice(1));
+      c.strokeStyle = "hsla(" + hue + "," + (sel?85:66) + "%," + (sel?70:56) + "%," + alpha.toFixed(3) + ")";
+    }
+    c.lineWidth = lw;
+    c.stroke(path);
+  }
+
+  drawLine(c);
+  if(S.sel){
+    const t = S.sel;
+    c.strokeStyle = "#F2B23E"; c.lineWidth = 2.4;
+    c.beginPath();
+    let pen = false;
+    for(let k=0;k<t.fr.length;k++){
+      const x = X(S.frames[t.fi[k]]), y = Y(t.fr[k]);
+      if(!pen){ c.moveTo(x, y); pen = true; } else c.lineTo(x, y);
+    }
+    c.stroke();
+  }
+  dirty = false;
+}
+
+function playTime(){
+  if(!S.playing) return S.playOffset;
+  return S.playOffset + (audioCtx().currentTime - S.playStart);
+}
+
+function draw(){
+  if(dirty) renderOff();
+  gx.setTransform(1, 0, 0, 1, 0, 0);
+  gx.clearRect(0, 0, cv.width, cv.height);
+  gx.drawImage(offC, 0, 0);
+  gx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  if(S.buffer && (S.playing || S.playOffset > 0)){
+    const x = X(playTime());
+    if(x >= 0 && x <= W){
+      gx.strokeStyle = "rgba(242,178,62,0.85)"; gx.lineWidth = 1;
+      gx.beginPath(); gx.moveTo(x + .5, 0); gx.lineTo(x + .5, H); gx.stroke();
+    }
+  }
+  const bx = S.dragBox || (S.box ? {
+    x0: X(S.box.t0), x1: X(S.box.t1), y0: Y(S.box.f1), y1: Y(S.box.f0)
+  } : null);
+  if(bx){
+    const l = Math.min(bx.x0, bx.x1), r = Math.max(bx.x0, bx.x1);
+    const t = Math.min(bx.y0, bx.y1), b = Math.max(bx.y0, bx.y1);
+    gx.fillStyle = "rgba(242,178,62,0.10)";
+    gx.fillRect(l, t, r - l, b - t);
+    gx.strokeStyle = "#F2B23E"; gx.lineWidth = 1;
+    gx.setLineDash(S.dragBox ? [4,3] : []);
+    gx.strokeRect(l + .5, t + .5, r - l, b - t);
+    gx.setLineDash([]);
+  }
+  if(hover){
+    gx.fillStyle = "rgba(11,28,36,0.94)";
+    gx.strokeStyle = "#27505E"; gx.lineWidth = 1;
+    const txt = hover.txt;
+    gx.font = "11px " + getComputedStyle(document.body).fontFamily;
+    const w = gx.measureText(txt).width + 14;
+    const bx = clamp(hover.x + 12, 2, W - w - 2), by = clamp(hover.y - 26, 2, H - 24);
+    gx.beginPath(); gx.roundRect(bx, by, w, 20, 3); gx.fill(); gx.stroke();
+    gx.fillStyle = "#DCEBEF";
+    gx.fillText(txt, bx + 7, by + 14);
+  }
+}
+
+/* ---------- hit testing ---------- */
+function pick(px, py){
+  if(px < PL) return null;
+  let best = null, bestD = 18*18;
+  const onlyGrouped = $("optOnly").checked;
+  const showDb = +$("showDb").value;
+  let gPeak = 1e-9;
+  for(const t of S.tracks) gPeak = Math.max(gPeak, t.peakA);
+  for(const t of S.tracks){
+    if(onlyGrouped && t.group < 0) continue;
+    if(20*Math.log10(t.peakA/gPeak) < showDb) continue;
+    for(let k=0;k<t.fr.length;k++){
+      const x = X(S.frames[t.fi[k]]);
+      if(x < -16 || x > W+16) continue;
+      const y = Y(t.fr[k]);
+      const dx = x - px, dy = y - py, d = dx*dx + dy*dy;
+      if(d < bestD){ bestD = d; best = t; }
+    }
+  }
+  return best;
+}
+
+/* ---------- pan, zoom, select ---------- */
+const pointers = new Map();
+let dragMoved = false, pinchBase = null;
+
+cv.addEventListener("pointerdown", e => {
+  cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x:e.offsetX, y:e.offsetY, t:Xi(e.offsetX), f:Yi(e.offsetY) });
+  dragMoved = false;
+  if(S.boxMode && pointers.size === 1 && e.offsetX >= PL){
+    S.dragBox = { x0:e.offsetX, y0:e.offsetY, x1:e.offsetX, y1:e.offsetY };
+  }
+  if(pointers.size === 2){
+    const [a, b] = [...pointers.values()];
+    pinchBase = { dx: Math.abs(a.x - b.x) || 1, t0:S.view.t0, t1:S.view.t1 };
+  }
+});
+cv.addEventListener("pointermove", e => {
+  const p = pointers.get(e.pointerId);
+  if(!p){
+    if(!S.tracks.length) return;
+    const t = pick(e.offsetX, e.offsetY);
+    const nh = t ? { x:e.offsetX, y:e.offsetY, txt: t.medF.toFixed(1) + " Hz · " + hzLabel(t.medF) + (t.group >= 0 ? " · harmonic " + t.harm : "") } : null;
+    if((nh && !hover) || (!nh && hover) || (nh && hover && nh.txt !== hover.txt) || (nh && hover && nh.x !== hover.x)){
+      hover = nh; draw();
+    }
+    return;
+  }
+  const dx = e.offsetX - p.x, dy = e.offsetY - p.y;
+  if(Math.abs(dx) > 3 || Math.abs(dy) > 3) dragMoved = true;
+
+  if(S.dragBox && pointers.size === 1){
+    S.dragBox.x1 = e.offsetX; S.dragBox.y1 = e.offsetY;
+    p.x = e.offsetX; p.y = e.offsetY;
+    draw();
+    return;
+  }
+  if(pointers.size === 2 && pinchBase){
+    const cur = [...pointers.values()];
+    const other = cur.find(q => q !== p) || p;
+    p.x = e.offsetX; p.y = e.offsetY;
+    const d = Math.abs(e.offsetX - other.x) || 1;
+    const k = pinchBase.dx/d;
+    const mid = (pinchBase.t0 + pinchBase.t1)/2;
+    const halfSpan = (pinchBase.t1 - pinchBase.t0)/2*k;
+    S.view.t0 = mid - halfSpan; S.view.t1 = mid + halfSpan;
+    invalidate(); draw();
+    return;
+  }
+  // pan
+  const span = S.view.t1 - S.view.t0;
+  const dt = -dx/W*span;
+  S.view.t0 += dt; S.view.t1 += dt;
+  const oct = Math.log2(S.view.f1/S.view.f0);
+  const df = dy/H*oct;
+  S.view.f0 *= Math.pow(2, df); S.view.f1 *= Math.pow(2, df);
+  p.x = e.offsetX; p.y = e.offsetY;
+  invalidate(); draw();
+});
+function endPointer(e){
+  const p = pointers.get(e.pointerId);
+  pointers.delete(e.pointerId);
+  if(pointers.size < 2) pinchBase = null;
+  if(S.dragBox){
+    const b = S.dragBox; S.dragBox = null;
+    if(Math.abs(b.x1 - b.x0) > 10 && Math.abs(b.y1 - b.y0) > 10){
+      const ta = Xi(b.x0), tb = Xi(b.x1), fa = Yi(b.y0), fb = Yi(b.y1);
+      S.box = {
+        t0: Math.min(ta, tb), t1: Math.max(ta, tb),
+        f0: Math.min(fa, fb), f1: Math.max(fa, fb)
+      };
+    }
+    updateBoxUI();
+    return;
+  }
+  if(p && !dragMoved){
+    const ni = pickNote(e.offsetX, e.offsetY);
+    if(ni >= 0){ selectNote(ni); return; }
+    if(S.tracks.length) selectTrack(pick(e.offsetX, e.offsetY));
+  }
+}
+cv.addEventListener("pointerup", endPointer);
+cv.addEventListener("pointercancel", e => { pointers.delete(e.pointerId); pinchBase = null; });
+cv.addEventListener("pointerleave", () => { if(hover){ hover = null; draw(); } });
+
+cv.addEventListener("wheel", e => {
+  e.preventDefault();
+  const k = Math.pow(1.0016, e.deltaY);
+  if(e.shiftKey || e.ctrlKey){
+    const fAt = Yi(e.offsetY);
+    S.view.f0 = clamp(fAt*Math.pow(S.view.f0/fAt, k), 12, 20000);
+    S.view.f1 = clamp(fAt*Math.pow(S.view.f1/fAt, k), S.view.f0*1.2, 24000);
+  }else{
+    const tAt = Xi(e.offsetX);
+    S.view.t0 = tAt + (S.view.t0 - tAt)*k;
+    S.view.t1 = tAt + (S.view.t1 - tAt)*k;
+  }
+  invalidate(); draw();
+}, { passive:false });
+
+/* ============================================================
+   Inspector
+   ============================================================ */
+function miniPlot(canvas, data, colour, zeroLine){
+  const c = canvas.getContext("2d");
+  const r = canvas.getBoundingClientRect();
+  const d = Math.min(2, window.devicePixelRatio || 1);
+  canvas.width = r.width*d; canvas.height = r.height*d;
+  c.setTransform(d, 0, 0, d, 0, 0);
+  const w = r.width, h = r.height;
+  c.clearRect(0, 0, w, h);
+  if(!data || data.length < 2) return;
+  let lo = Infinity, hi = -Infinity;
+  for(const v of data){ if(v < lo) lo = v; if(v > hi) hi = v; }
+  if(zeroLine){ const m = Math.max(Math.abs(lo), Math.abs(hi), 1); lo = -m; hi = m; }
+  if(hi - lo < 1e-9) hi = lo + 1;
+  const yy = v => h - 3 - (v - lo)/(hi - lo)*(h - 6);
+  if(zeroLine){
+    c.strokeStyle = "rgba(39,80,94,0.9)"; c.lineWidth = 1;
+    c.beginPath(); c.moveTo(0, yy(0)); c.lineTo(w, yy(0)); c.stroke();
+  }
+  c.strokeStyle = colour; c.lineWidth = 1.4;
+  c.beginPath();
+  for(let i=0;i<data.length;i++){
+    const x = i/(data.length-1)*w, y = yy(data[i]);
+    i ? c.lineTo(x, y) : c.moveTo(x, y);
+  }
+  c.stroke();
+}
+
+function row(k, v, cls){
+  return "<div><k>" + k + "</k><v" + (cls ? ' class="'+cls+'"' : "") + ">" + v + "</v></div>";
+}
+
+function selectTrack(t){
+  S.sel = t || null;
+  S.selGroup = t && t.group >= 0 ? t.group : null;
+  renderTrackInfo(); renderGroups(); invalidate(); draw();
+  if(t && $("optTap").checked){
+    playBuffer(resynth([t]), t.medF.toFixed(1) + " Hz · " + hzLabel(t.medF)
+      + (t.group >= 0 ? " · harmonic " + t.harm + " of " + noteName(S.groups[t.group].midi) : ""));
+  }
+}
+
+function renderTrackInfo(){
+  const el = $("trackInfo");
+  const t = S.sel;
+  if(!t){ el.innerHTML = '<p class="empty">Click a filament on the plot.</p>'; $("btnPlaySel").disabled = !(S.selGroup !== null); return; }
+  const g = t.group >= 0 ? S.groups[t.group] : null;
+  let html = '<div class="readout">';
+  html += row("frequency", t.medF.toFixed(2) + " Hz");
+  html += row("nearest", hzLabel(t.medF));
+  html += row("onset", (t.t0).toFixed(3) + " s");
+  html += row("duration", (t.dur*1000).toFixed(0) + " ms");
+  html += row("peak level", (20*Math.log10(t.peakA + 1e-12)).toFixed(1) + " dBFS");
+  html += row("frames", t.fr.length);
+  if(t.vibDepth > 4)
+    html += row("vibrato", "±" + t.vibDepth.toFixed(1) + "¢ at " + t.vibRate.toFixed(1) + " Hz", "good");
+  else
+    html += row("vibrato", "none detected");
+  html += row("pitch wobble", "±" + t.modRms.toFixed(1) + "¢ rms");
+  if(g) html += row("belongs to", "harmonic " + t.harm + " of " + noteName(g.midi));
+  html += "</div>";
+
+  html += '<h2 style="margin-top:12px">Amplitude</h2><canvas class="mini" id="mEnv"></canvas>';
+  html += '<h2>Pitch deviation (cents)</h2><canvas class="mini" id="mMod"></canvas>';
+
+  // partials that behave like this one
+  const rel = [];
+  for(const o of S.tracks){
+    if(o === t) continue;
+    if(Math.abs(o.t0 - t.t0) > 0.25) continue;
+    const af = affinity(t, o);
+    if(!af.ok) continue;
+    const useMod = af.modDepth !== undefined && af.modDepth > 6;
+    const score = useMod ? af.mod : af.env;
+    if(score > 0.55) rel.push({ o, score, useMod });
+  }
+  rel.sort((a,b) => b.score - a.score);
+  html += '<h2 style="margin-top:10px">Moves with this partial</h2>';
+  if(!rel.length){
+    html += '<p class="note">Nothing else tracks it closely. On a steady tone that is expected — without vibrato there is nothing to correlate.</p>';
+  }else{
+    html += '<div class="readout">';
+    for(const r of rel.slice(0, 8)){
+      html += row(r.o.medF.toFixed(1) + " Hz", r.score.toFixed(2) + (r.useMod ? " vib" : " env"), r.score > 0.8 ? "good" : "");
+    }
+    html += "</div>";
+  }
+  html += '<div class="btnrow"><button id="btnPlayPartial" class="sm">Play this partial alone</button>';
+  if(g) html += '<button id="btnPlayNote" class="sm">Play this note alone</button>';
+  html += "</div>";
+  el.innerHTML = html;
+
+  miniPlot($("mEnv"), Array.from(t.dbEnv), "#5FD3A6", false);
+  miniPlot($("mMod"), Array.from(t.cents), "#F2B23E", true);
+  $("btnPlayPartial").onclick = () => playBuffer(resynth([t]), "Resynthesis of one partial at " + t.medF.toFixed(1) + " Hz.");
+  if(g) $("btnPlayNote").onclick = () => playGroup(g);
+  $("btnPlaySel").disabled = false;
+}
+
+function renderGroups(){
+  const ul = $("groupList");
+  ul.innerHTML = "";
+  $("noGroups").style.display = S.groups.length ? "none" : "block";
+  const old = $("groupDetail"); if(old) old.remove();
+
+  for(const g of S.groups){
+    const li = document.createElement("li");
+    if(g.i === S.selGroup) li.className = "sel";
+    const dot = document.createElement("b");
+    dot.style.background = "hsl(" + hueFor(g.i) + ",66%,56%)";
+    const nm = document.createElement("span");
+    nm.className = "nm"; nm.textContent = noteName(g.midi);
+    const meta = document.createElement("span");
+    meta.className = "meta";
+    meta.textContent = g.f0.toFixed(1) + " Hz · " + g.members.length + "p · " + (g.t1-g.t0).toFixed(2) + "s";
+    li.append(dot, nm, meta);
+    if(g.verdict !== "single"){
+      const w = document.createElement("span");
+      w.className = "amb";
+      w.textContent = g.verdict === "split" ? "!" : "?";
+      if(g.verdict !== "split") w.style.color = "var(--muted)";
+      w.title = g.evidence;
+      li.append(w);
+    }
+    li.onclick = () => {
+      S.selGroup = g.i;
+      S.sel = g.members[0].t;
+      renderTrackInfo(); renderGroups(); invalidate(); draw();
+    };
+    ul.append(li);
+  }
+
+  if(S.selGroup !== null && S.groups[S.selGroup]){
+    const g = S.groups[S.selGroup];
+    const d = document.createElement("div");
+    d.id = "groupDetail";
+    d.style.marginTop = "10px";
+    const cls = g.verdict === "single" ? "good" : "flag";
+    d.innerHTML = '<div class="readout">'
+      + row("fundamental", g.f0.toFixed(2) + " Hz")
+      + row("as a note", hzLabel(g.f0))
+      + row("partials", g.members.map(m => m.h).join(", "))
+      + row("octave check", g.verdict, cls)
+      + '</div><p class="note" style="margin-top:6px">' + g.evidence + "</p>";
+    const b = document.createElement("div");
+    b.className = "btnrow";
+    const btn = document.createElement("button");
+    btn.className = "sm"; btn.textContent = "Play this note alone";
+    btn.onclick = () => playGroup(g);
+    b.append(btn); d.append(b);
+    $("notesPanel").append(d);
+  }
+}
+
+function pickNote(px, py){
+  if(!S.line || px < PL) return -1;
+  for(let i=0;i<S.line.notes.length;i++){
+    const nt = S.line.notes[i];
+    const yT = Y(midiToHz(nt.midi + 0.5)), yB = Y(midiToHz(nt.midi - 0.5));
+    const x0 = X(nt.qt0), x1 = X(nt.qt1);
+    if(px >= x0 - 3 && px <= x1 + 3 && py >= yT - 2 && py <= yB + 2) return i;
+  }
+  return -1;
+}
+function selectNote(i){
+  S.selNote = i;
+  S.sel = null; S.selGroup = null;
+  renderLine(); renderTrackInfo(); renderGroups(); invalidate(); draw();
+  const nt = S.line.notes[i];
+  if($("optTap").checked) playNoteAudio(nt);
+}
+function playNoteAudio(nt){
+  const buf = isolateAudio({
+    t0: nt.t0, t1: nt.t1,
+    f0: nt.hz*Math.pow(2, -0.7/12), f1: nt.hz*14
+  });
+  if(buf) playBuffer(buf, noteName(nt.midi) + (nt.cents >= 0 ? "+" : "−") + Math.abs(nt.cents)
+    + "¢ · " + Math.round((nt.t1-nt.t0)*1000) + " ms"
+    + (nt.bend ? " · pitch moves " + nt.range + "¢" : ""));
+}
+
+function editNote(op, arg){
+  if(!S.line || S.selNote == null) return;
+  const notes = S.line.notes;
+  const i = S.selNote, nt = notes[i];
+  if(op === "semitone" || op === "octave"){
+    const before = nt.midi;
+    nt.midi += arg;
+    nt.hz = midiToHz(nt.midi);
+    nt.cents = 0; nt.edited = true;
+    logCorrection(op, nt, { from: before, to: nt.midi });
+  }else if(op === "delete"){
+    logCorrection("delete", nt, {});
+    notes.splice(i, 1);
+    S.selNote = Math.min(i, notes.length - 1);
+    if(!notes.length) S.selNote = null;
+  }else if(op === "merge"){
+    if(i >= notes.length - 1) return;
+    const nx = notes[i+1];
+    logCorrection("merge", nt, { withMidi: nx.midi, gapMs: Math.round((nx.t0-nt.t1)*1000) });
+    nt.t1 = nx.t1; nt.i1 = nx.i1; nt.edited = true;
+    nt.range = Math.max(nt.range, Math.abs(cents(nx.hz, nt.hz)) | 0);
+    notes.splice(i+1, 1);
+  }else if(op === "split"){
+    const at = clamp(playTime(), nt.t0 + 0.02, nt.t1 - 0.02);
+    if(!(at > nt.t0 && at < nt.t1)){
+      setStatus("Put the playhead inside the note first, then split.", "bad"); return;
+    }
+    logCorrection("split", nt, { atMs: Math.round((at-nt.t0)*1000) });
+    const b = Object.assign({}, nt);
+    nt.t1 = at; b.t0 = at;
+    nt.edited = true; b.edited = true;
+    notes.splice(i+1, 0, b);
+  }else if(op === "bend"){
+    nt.bend = !nt.bend; nt.edited = true;
+    logCorrection("bend", nt, { nowBend: nt.bend });
+  }
+  quantiseLine();
+  renderLine(); invalidate(); draw();
+}
+
+function renderLine(){
+  const ul = $("lineList"), ed = $("lineEdit");
+  const has = S.line && S.line.notes.length;
+  $("noLine").style.display = has ? "none" : "block";
+  ul.innerHTML = ""; ed.innerHTML = "";
+  if(!has) return;
+
+  if(S.selNote != null && S.line.notes[S.selNote]){
+    const nt = S.line.notes[S.selNote];
+    ed.innerHTML = '<div class="readout">'
+      + row("pitch", noteName(nt.midi) + " · " + nt.hz.toFixed(1) + " Hz")
+      + row("off equal temperament", (nt.cents >= 0 ? "+" : "−") + Math.abs(nt.cents) + " ¢")
+      + row("length", Math.round((nt.t1 - nt.t0)*1000) + " ms")
+      + row("pitch travel", nt.range + " ¢", nt.range > 80 ? "flag" : "")
+      + row("struck", nt.attack ? "yes, clear attack" : "no attack — legato or slide")
+      + "</div>";
+    const mk = (label, op, arg) => {
+      const b = document.createElement("button");
+      b.className = "sm"; b.textContent = label;
+      b.onclick = () => editNote(op, arg);
+      return b;
+    };
+    const g1 = document.createElement("div"); g1.className = "two"; g1.style.marginTop = "8px";
+    g1.append(mk("Down a semitone","semitone",-1), mk("Up a semitone","semitone",1));
+    const g2 = document.createElement("div"); g2.className = "two"; g2.style.marginTop = "7px";
+    g2.append(mk("Down an octave","octave",-12), mk("Up an octave","octave",12));
+    const g3 = document.createElement("div"); g3.className = "btnrow";
+    g3.append(mk("Split at the playhead","split"), mk("Join to the next note","merge"),
+              mk("It is a bend or slide","bend"), mk("Not a note — remove it","delete"));
+    ed.append(g1, g2, g3);
+  }
+
+  S.line.notes.forEach((nt, i) => {
+    const li = document.createElement("li");
+    if(i === S.selNote) li.className = "sel";
+    const nm = document.createElement("span");
+    nm.className = "nm"; nm.textContent = noteName(nt.midi);
+    const meta = document.createElement("span");
+    meta.className = "meta";
+    meta.textContent = nt.qt0.toFixed(2) + "s · " + Math.round((nt.qt1 - nt.qt0)*1000) + "ms";
+    li.append(nm, meta);
+    if(nt.bend){ const b = document.createElement("span"); b.className = "bd"; b.textContent = "bend"; li.append(b); }
+    if(nt.edited){ const b = document.createElement("span"); b.className = "ed"; b.textContent = "fixed"; li.append(b); }
+    li.onclick = () => selectNote(i);
+    ul.append(li);
+  });
+}
+
+function exportLineMidi(){
+  if(!S.line || !S.line.notes.length) return;
+  const TPQ = 480;
+  const bpm = clamp(+$("bpm").value || 120, 20, 300);
+  const base = S.line.notes[0].qt0;
+  const toTicks = t => Math.round((t - base)*TPQ*bpm/60);
+  let mx = 1e-9;
+  for(const n of S.line.notes) mx = Math.max(mx, n.amp);
+
+  const ev = [];
+  for(const n of S.line.notes){
+    const rel = 20*Math.log10((n.amp + 1e-12)/mx);
+    const vel = clamp(Math.round(127*Math.pow(10, clamp(rel, -40, 0)/38)), 20, 127);
+    const on = Math.max(0, toTicks(n.qt0));
+    const off = Math.max(on + 20, toTicks(n.qt1));
+    ev.push({ t:on, s:0x90, a:clamp(n.midi,0,127), b:vel });
+    ev.push({ t:off, s:0x80, a:clamp(n.midi,0,127), b:0 });
+  }
+  ev.sort((x,y) => x.t - y.t || x.s - y.s);
+
+  const us = Math.round(60000000/bpm);
+  const body = [0x00, 0xFF, 0x51, 0x03, (us>>16)&255, (us>>8)&255, us&255,
+                0x00, 0xFF, 0x58, 0x04, 0x04, 0x02, 0x18, 0x08];
+  let last = 0;
+  for(const e of ev){ body.push(...vlq(e.t - last), e.s, e.a, e.b); last = e.t; }
+  body.push(0x00, 0xFF, 0x2F, 0x00);
+
+  const bytes = [...str4("MThd"), ...be32(6), ...be16(0), ...be16(1), ...be16(TPQ),
+                 ...str4("MTrk"), ...be32(body.length), ...body];
+  const blob = new Blob([new Uint8Array(bytes)], { type:"audio/midi" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = S.name + "-line.mid";
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  setStatus(S.line.notes.length + " notes written to " + a.download + " at " + bpm
+    + " bpm. Import it into MuseScore and it will engrave.");
+}
+
+/* ============================================================
+   Transport
+   ============================================================ */
+function stopAll(){
+  if(S.src){ try{ S.src.stop(); }catch(e){} S.src.disconnect(); S.src = null; }
+  S.playing = false;
+  $("btnPlay").textContent = "Play";
+}
+function playBuffer(buf, msg){
+  if(!buf) return;
+  stopAll();
+  const ctx = audioCtx();
+  const src = ctx.createBufferSource();
+  src.buffer = buf; src.connect(ctx.destination);
+  src.start();
+  S.src = src;
+  src.onended = () => { if(S.src === src){ S.src = null; } };
+  if(msg) setStatus(msg);
+}
+function playGroup(g){
+  playBuffer(resynth(g.members.map(m => m.t)),
+    "Resynthesis of " + noteName(g.midi) + " from " + g.members.length + " partials — if it sounds like two notes, it is two notes.");
+}
+function togglePlay(){
+  if(!S.buffer) return;
+  if(S.playing){
+    S.playOffset = playTime();
+    stopAll(); return;
+  }
+  stopAll();
+  const ctx = audioCtx();
+  const src = ctx.createBufferSource();
+  src.buffer = S.buffer; src.connect(ctx.destination);
+  const off = clamp(S.playOffset, 0, S.buffer.duration - 0.02);
+  src.start(0, off);
+  S.src = src; S.playStart = ctx.currentTime; S.playOffset = off; S.playing = true;
+  $("btnPlay").textContent = "Pause";
+  src.onended = () => { if(S.src === src){ S.playing = false; S.playOffset = 0; $("btnPlay").textContent = "Play"; } };
+  tick();
+}
+function tick(){
+  if(S.buffer){
+    const t = clamp(playTime(), 0, S.buffer.duration);
+    $("tRead").textContent = t.toFixed(2) + " / " + S.buffer.duration.toFixed(2) + " s";
+    $("seek").value = Math.round(t/S.buffer.duration*1000);
+    draw();
+  }
+  if(S.playing) requestAnimationFrame(tick);
+}
+
+/* ============================================================
+   Wiring
+   ============================================================ */
+function bindRange(id, fmt){
+  const el = $(id), out = $(id + "v");
+  const upd = () => { if(out) out.textContent = fmt(+el.value); };
+  el.addEventListener("input", upd); upd();
+}
+bindRange("floorDb", v => "−" + Math.abs(v) + " dB");
+bindRange("tolCents", v => v + " ¢");
+bindRange("maxGap", v => v + " fr");
+bindRange("minLen", v => v + " fr");
+bindRange("harmTol", v => v + " ¢");
+bindRange("onsetWin", v => v + " ms");
+bindRange("minParts", v => String(v));
+bindRange("n1", v => noteName(v));
+bindRange("n2", v => noteName(v));
+bindRange("v1", v => (v/10).toFixed(1) + " Hz");
+bindRange("v2", v => (v/10).toFixed(1) + " Hz");
+bindRange("d1", v => "±" + v + " ¢");
+bindRange("d2", v => "±" + v + " ¢");
+bindRange("nh", v => String(v));
+bindRange("showDb", v => "−" + Math.abs(v) + " dB");
+bindRange("lineSens", v => String(v));
+bindRange("lineMin", v => v + " ms");
+
+$("win").addEventListener("change", e => { $("winv").textContent = e.target.value; });
+$("tStart").addEventListener("input", e => { $("tStartv").textContent = (+e.target.value || 0) + " s"; });
+$("tLen").addEventListener("input", e => { $("tLenv").textContent = (+e.target.value || 0) + " s"; });
+$("preset").addEventListener("change", e => {
+  $("customPanel").style.display = e.target.value === "custom" ? "block" : "none";
+});
+
+$("btnFile").onclick = () => $("file").click();
+$("file").onchange = e => { if(e.target.files[0]) loadFile(e.target.files[0]); };
+$("btnGen").onclick = () => buildTestSignal();
+$("btnRun").onclick = () => { if(S.buffer) analyse(); };
+$("btnGroup").onclick = () => groupNotes();
+$("btnMidi").onclick = () => exportMidi();
+$("btnReset").onclick = () => { autoRange(); invalidate(); draw(); };
+$("btnPlay").onclick = () => togglePlay();
+$("btnPlaySel").onclick = () => {
+  if(S.selGroup !== null && S.groups[S.selGroup]) playGroup(S.groups[S.selGroup]);
+  else if(S.sel) playBuffer(resynth([S.sel]), "Resynthesis of one partial.");
+};
+$("seek").oninput = e => {
+  if(!S.buffer) return;
+  const t = (+e.target.value)/1000*S.buffer.duration;
+  const was = S.playing;
+  if(was) stopAll();
+  S.playOffset = t;
+  if(was) togglePlay(); else { $("tRead").textContent = t.toFixed(2) + " / " + S.buffer.duration.toFixed(2) + " s"; draw(); }
+};
+for(const id of ["optColour","optGrid","optOnly","optBlocks"])
+  $(id).addEventListener("change", () => { invalidate(); draw(); });
+$("showDb").addEventListener("input", () => { invalidate(); draw(); });
+
+$("btnLine").onclick = () => transcribeLine();
+$("btnLineMidi").onclick = () => exportLineMidi();
+$("btnCorrOut").onclick = () => exportCorrections();
+$("grid").onchange = () => { quantiseLine(); renderLine(); invalidate(); draw(); };
+$("bpm").oninput = () => { quantiseLine(); renderLine(); invalidate(); draw(); };
+$("btnTap").onclick = () => {
+  const now = performance.now()/1000;
+  if(S.taps.length && now - S.taps[S.taps.length-1] > 2.2) S.taps = [];
+  S.taps.push(now);
+  if(S.taps.length > 8) S.taps.shift();
+  if(S.taps.length < 2){ setStatus("Keep tapping in time."); return; }
+  let sum = 0;
+  for(let i=1;i<S.taps.length;i++) sum += S.taps[i] - S.taps[i-1];
+  const bpm = Math.round(60/(sum/(S.taps.length-1)));
+  $("bpm").value = clamp(bpm, 20, 300);
+  quantiseLine(); renderLine(); invalidate(); draw();
+  setStatus(bpm + " bpm from " + S.taps.length + " taps.");
+};
+
+$("btnBox").onclick = () => {
+  S.boxMode = !S.boxMode;
+  $("btnBox").className = "sm" + (S.boxMode ? " on" : "");
+  setStatus(S.boxMode
+    ? "Drag a box round the part you want. Tap the button again to go back to panning."
+    : "Panning again.");
+};
+$("btnClearBox").onclick = () => { S.box = null; updateBoxUI(); };
+$("btnHearAudio").onclick = () => {
+  if(!S.box) return;
+  if(S.box.t1 - S.box.t0 < 0.06){
+    setStatus("That box is only " + Math.round((S.box.t1-S.box.t0)*1000)
+      + " ms wide — too short to filter cleanly. Drag a wider one.", "bad");
+    return;
+  }
+  setStatus("Filtering the recording…", "busy");
+  setTimeout(() => {
+    const buf = isolateAudio(S.box);
+    if(buf) playBuffer(buf, "The recording itself, everything outside the box filtered out — "
+      + nearestNote(S.box.f0) + " to " + nearestNote(S.box.f1) + ", "
+      + (S.box.t1 - S.box.t0).toFixed(2) + " s.");
+    else setStatus("That box is too short to filter. Drag a wider one.", "bad");
+  }, 12);
+};
+$("btnHearParts").onclick = () => {
+  if(!S.box) return;
+  const tr = tracksInBox(S.box);
+  if(!tr.length){ setStatus("No partials inside that box.", "bad"); return; }
+  const buf = resynth(tr, S.box);
+  if(!buf){ setStatus("Nothing to rebuild in that box.", "bad"); return; }
+  playBuffer(buf, tr.length + " partials rebuilt from the model. Sine trajectories only — "
+    + "any noise or attack transient in the original is absent by construction.");
+};
+
+window.addEventListener("keydown", e => {
+  if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if(e.code === "Space"){ e.preventDefault(); togglePlay(); }
+  if(e.key === "Escape") selectTrack(null);
+});
+window.addEventListener("keydown", e => {
+  if(e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+  if(!S.line || S.selNote == null) return;
+  if(e.key === "ArrowUp"){ e.preventDefault(); editNote("semitone", 1); }
+  if(e.key === "ArrowDown"){ e.preventDefault(); editNote("semitone", -1); }
+  if(e.key === "ArrowRight" && S.selNote < S.line.notes.length-1){ e.preventDefault(); selectNote(S.selNote+1); }
+  if(e.key === "ArrowLeft" && S.selNote > 0){ e.preventDefault(); selectNote(S.selNote-1); }
+});
+loadCorrections();
+window.addEventListener("resize", resize);
+new ResizeObserver(resize).observe($("plotWrap"));
+resize();
+</script>
+</body>
+</html>

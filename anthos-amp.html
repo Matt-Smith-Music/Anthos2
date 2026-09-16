@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#231a1b">
+<title>Anthos Amp</title>
+<style>
+:root{
+  --tolex:#231a1b; --tolex-2:#2d2122; --panel:#cbb98c; --panel-hi:#e0d2ad; --panel-lo:#a8966b;
+  --ink:#2c2216; --ivory:#efe6cf; --piping:#e8dcc0; --jewel:#d0242c; --back:#3a3434; --back-ink:#e9e1d0;
+  --led-g:#74d36a; --led-a:#f0b429; --led-r:#ff4a3d;
+  --label:"Futura","Avenir Next Condensed","Avenir Next","Century Gothic","Trebuchet MS",sans-serif;
+  --logo:"Didot","Bodoni 72","Bodoni MT",Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--tolex);color:var(--back-ink);font-family:var(--label);-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;padding:max(14px,env(safe-area-inset-top)) 12px 40px;
+  background-image:repeating-linear-gradient(45deg,rgba(255,255,255,.018) 0 2px,transparent 2px 5px),repeating-linear-gradient(-45deg,rgba(0,0,0,.18) 0 2px,transparent 2px 6px)}
+.rig{max-width:1020px;margin:0 auto}
+button,select,input{font-family:inherit}
+:focus-visible{outline:2px solid var(--led-a);outline-offset:3px}
+
+/* ---- the head: brushed control panel ---- */
+.head{position:relative;border-radius:14px;padding:12px;background:var(--tolex-2);
+  box-shadow:inset 0 0 0 2px var(--piping),inset 0 0 0 8px var(--tolex-2),inset 0 0 0 9px rgba(232,220,192,.35),0 18px 40px rgba(0,0,0,.55)}
+.panel{border-radius:6px;padding:18px 22px 16px;color:var(--ink);
+  background:linear-gradient(180deg,rgba(255,255,255,.25),transparent 30%,rgba(0,0,0,.08)),
+    repeating-linear-gradient(90deg,var(--panel) 0 1px,var(--panel-hi) 1px 2px,var(--panel) 2px 4px,var(--panel-lo) 4px 5px,var(--panel) 5px 7px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),inset 0 -2px 0 rgba(0,0,0,.2)}
+.top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.logo{font-family:var(--logo);font-style:italic;font-weight:700;font-size:36px;letter-spacing:-.5px;line-height:1;margin:0;color:var(--ink);
+  text-shadow:0 1px 0 rgba(255,255,255,.55)}
+.logo small{display:block;font-family:var(--label);font-style:normal;font-weight:500;font-size:11px;letter-spacing:.14em;margin-top:5px;opacity:.75}
+.channels{display:flex;gap:6px;flex-wrap:wrap;margin-left:auto}
+.ch{border:0;cursor:pointer;padding:9px 14px 8px;border-radius:4px;font-size:14px;font-weight:600;color:var(--ink);
+  background:linear-gradient(#f3ead4,#d9cca6);box-shadow:0 2px 0 #8a7a55,0 3px 4px rgba(0,0,0,.25),inset 0 1px 0 #fff}
+.ch[aria-pressed="true"]{background:linear-gradient(#2c2216,#43372a);color:var(--ivory);box-shadow:inset 0 2px 4px rgba(0,0,0,.6),0 1px 0 rgba(255,255,255,.4);transform:translateY(2px)}
+.ch .led{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:7px;vertical-align:1px;background:#6b5d40}
+.ch[aria-pressed="true"] .led{background:var(--led-a);box-shadow:0 0 6px var(--led-a)}
+.power{display:flex;align-items:center;gap:10px;border:0;background:none;cursor:pointer;color:var(--ink);font-size:13px;font-weight:600;padding:4px}
+.jewel{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#ff9d8f 0,#7a1318 45%,#3b0a0c 75%);
+  box-shadow:0 0 0 3px #b7a577,0 0 0 5px #6f6246,inset 0 -3px 5px rgba(0,0,0,.5);transition:box-shadow .25s}
+.on .jewel{background:radial-gradient(circle at 35% 30%,#fff1e8 0,#ff4a3d 35%,var(--jewel) 60%,#6d0b10 90%);
+  box-shadow:0 0 0 3px #b7a577,0 0 0 5px #6f6246,0 0 22px 6px rgba(255,60,50,.55)}
+.knobs{display:grid;grid-template-columns:repeat(8,1fr);gap:4px 6px;margin-top:18px}
+.kn{display:flex;flex-direction:column;align-items:center;user-select:none;-webkit-user-select:none}
+.kn label{font-size:13px;font-weight:600;margin-top:2px;white-space:nowrap}
+.kn .val{font-size:11px;opacity:.7;height:14px;font-variant-numeric:tabular-nums}
+.kn.off{opacity:.38}
+.dial{width:76px;height:76px;touch-action:pinch-zoom;cursor:ns-resize;border-radius:50%}
+.status{display:flex;flex-wrap:wrap;align-items:center;gap:10px 22px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(44,34,22,.25);font-size:12.5px}
+.meter{display:flex;align-items:center;gap:8px}
+.leds{display:flex;gap:2px;padding:3px;background:#1c1512;border-radius:3px}
+.leds i{width:7px;height:10px;border-radius:1px;background:#2f2a20}
+.leds i.g{background:var(--led-g);box-shadow:0 0 4px var(--led-g)}
+.leds i.a{background:var(--led-a);box-shadow:0 0 4px var(--led-a)}
+.leds i.r{background:var(--led-r);box-shadow:0 0 5px var(--led-r)}
+.gatelamp{width:9px;height:9px;border-radius:50%;background:#5d5138;display:inline-block;vertical-align:-1px;margin-left:4px}
+.gatelamp.open{background:var(--led-g);box-shadow:0 0 5px var(--led-g)}
+.note{margin-left:auto;opacity:.8;font-variant-numeric:tabular-nums}
+
+/* ---- the cab: grille cloth ---- */
+.cab{margin-top:14px;border-radius:14px;padding:16px 18px;position:relative;
+  background:linear-gradient(rgba(0,0,0,.25),rgba(0,0,0,.35)),
+    repeating-linear-gradient(45deg,#6b5a3e 0 2px,#3f3424 2px 4px),repeating-linear-gradient(-45deg,rgba(255,240,200,.12) 0 2px,transparent 2px 4px);
+  box-shadow:inset 0 0 0 2px var(--piping),inset 0 0 30px rgba(0,0,0,.6),0 18px 40px rgba(0,0,0,.5)}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.row+.row{margin-top:12px}
+.h{font-size:14px;font-weight:600;color:var(--piping);min-width:74px}
+.chip{border:1px solid rgba(232,220,192,.5);background:rgba(20,15,12,.55);color:var(--back-ink);border-radius:999px;padding:7px 13px;font-size:13.5px;cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--piping);color:var(--ink);border-color:var(--piping);font-weight:600}
+.chip:disabled{opacity:.4;cursor:default}
+.inline-knob{display:flex;align-items:center;gap:8px;margin-left:auto}
+.inline-knob .dial{width:54px;height:54px}
+.inline-knob label{font-size:13px;color:var(--piping);font-weight:600}
+
+/* ---- back panel ---- */
+.back{margin-top:14px;border-radius:10px;padding:16px 18px;background:linear-gradient(#403a39,#343030);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 18px 40px rgba(0,0,0,.45);font-size:14px}
+.back select{background:#221e1d;color:var(--back-ink);border:1px solid #6b625c;border-radius:6px;padding:7px 8px;font-size:13.5px;max-width:100%}
+.btn{border:1px solid #8b817a;background:#2a2524;color:var(--back-ink);border-radius:6px;padding:8px 13px;font-size:13.5px;cursor:pointer}
+.btn.primary{background:var(--piping);color:var(--ink);border-color:var(--piping);font-weight:600}
+.hint{font-size:12.5px;line-height:1.5;color:#c8bfb0;max-width:70ch;margin:8px 0 0}
+.hint a{color:var(--piping)}
+.caps{margin-top:10px;display:grid;gap:6px}
+.cap{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:6px;background:#2a2524;border:1px solid transparent}
+.cap.active{border-color:var(--led-a);background:#342b22}
+.cap .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cap .tag{font-size:12px;color:#b8ae9f;white-space:nowrap}
+.cap .x{border:0;background:none;color:#b8ae9f;font-size:18px;cursor:pointer;padding:0 4px}
+.empty{padding:12px;border:1px dashed #6b625c;border-radius:6px;color:#c8bfb0;font-size:13px}
+.sw{display:inline-flex;align-items:center;gap:7px;font-size:13.5px;cursor:pointer}
+.sw input{width:17px;height:17px;accent-color:var(--led-a)}
+.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);max-width:min(92vw,560px);background:#f3ead4;color:var(--ink);
+  padding:11px 16px;border-radius:8px;font-size:14px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;z-index:9}
+.toast.err{background:#ffd9d4}
+input[type=file]{display:none}
+@media (max-width:760px){
+  .panel{padding:14px 12px}
+  .logo{font-size:30px}
+  .channels{margin-left:0;width:100%}
+  .ch{flex:1 1 auto;padding:10px 8px 9px;font-size:13.5px}
+  .knobs{grid-template-columns:repeat(4,1fr);gap:10px 4px}
+  .dial{width:68px;height:68px}
+  .note{margin-left:0;width:100%}
+  .inline-knob{margin-left:0}
+  .h{min-width:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<style id="anthosBackBar">
+:root{--backbar:44px}
+#appBack{position:fixed;top:0;left:0;right:0;z-index:900;
+  height:calc(var(--backbar) + env(safe-area-inset-top,0px));
+  padding:env(safe-area-inset-top,0px) 14px 0 12px;
+  display:flex;align-items:center;gap:7px;
+  background:rgba(18,16,14,.97);border-bottom:1px solid #2A3136;color:#EEF0F2;
+  font:600 14px/1 ui-sans-serif,system-ui,-apple-system,sans-serif;text-decoration:none}
+#appBack:active{background:#1D2226}
+#appBack .chev{font-size:19px;line-height:1;margin-top:-2px;color:#FFD84D}
+.psLink{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:2147483001;
+  font:700 12px/1 system-ui,sans-serif;color:#FFD84D;text-decoration:none;border:1px solid #2A3136;
+  border-radius:999px;padding:7px 10px;background:#0C0E10;white-space:nowrap}
+body{box-sizing:border-box;padding-top:calc(var(--backbar) + env(safe-area-inset-top,0px))}
+</style>
+</head>
+<body>
+<a id="appBack" href="index.html"><span class="chev">‹</span>All apps</a><a class="psLink" href="practice-schedule.html?app=anthos-amp&name=Anthos%20Amp" target="_blank" rel="noopener" title="Practice schedule for this app">Schedule</a>
+
+<div class="rig">
+  <section class="head" aria-label="Amp">
+    <div class="panel">
+      <div class="top">
+        <h1 class="logo">Anthos Amp<small>Four channels and a capture slot</small></h1>
+        <div class="channels" role="group" aria-label="Channel">
+          <button class="ch" data-amp="clean"><span class="led"></span>Clean</button>
+          <button class="ch" data-amp="crunch"><span class="led"></span>Crunch</button>
+          <button class="ch" data-amp="lead"><span class="led"></span>Lead</button>
+          <button class="ch" data-amp="bass"><span class="led"></span>Bass</button>
+          <button class="ch" data-amp="capture"><span class="led"></span>Capture</button>
+        </div>
+        <button class="power" id="power" aria-pressed="false"><span class="jewel"></span><span id="powerLabel">Power</span></button>
+      </div>
+      <div class="knobs" id="knobs"></div>
+      <div class="status">
+        <span class="meter">In <span class="leds" id="mIn"></span></span>
+        <span class="meter">Out <span class="leds" id="mOut"></span></span>
+        <span>Gate<span class="gatelamp" id="gateLamp"></span></span>
+        <span class="note" id="note">Press Power to start</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="cab" aria-label="Cabinet and room">
+    <div class="row">
+      <span class="h">Cabinet</span>
+      <button class="chip" data-cab="off">Off</button>
+      <button class="chip" data-cab="1x12">1×12 open</button>
+      <button class="chip" data-cab="2x12">2×12</button>
+      <button class="chip" data-cab="4x12">4×12 closed</button>
+      <button class="chip" data-cab="4x10">Bass 4×10</button>
+      <button class="chip" data-cab="ir" id="cabIr" disabled>IR</button>
+      <button class="chip" id="loadIr">Load IR…</button>
+      <div class="inline-knob"><label for="k-room">Room</label><div id="roomSlot"></div></div>
+    </div>
+    <div class="row" id="irRow" hidden><span class="h"></span><span class="hint" id="irName" style="margin:0"></span></div>
+  </section>
+
+  <section class="back" aria-label="Connections and captures">
+    <div class="row">
+      <span class="h" style="color:var(--back-ink)">Play from</span>
+      <button class="chip" data-src="interface">Guitar input</button>
+      <button class="chip" data-src="riff">Test riff</button>
+      <button class="chip" data-src="file">DI file…</button>
+    </div>
+    <div class="row" id="devRow">
+      <span class="h" style="color:var(--back-ink)">Input</span>
+      <select id="inDev" aria-label="Input device"><option value="">Default input</option></select>
+      <select id="inCh" aria-label="Input channel">
+        <option value="1">Input 1</option><option value="2">Input 2</option><option value="both">1 + 2</option>
+      </select>
+      <select id="outDev" aria-label="Output device" hidden></select>
+    </div>
+    <p class="hint">Plug the guitar into an audio interface and listen on headphones plugged into the interface: the phone or laptop's own mic and speakers will feed back. Set the interface gain so hard strumming just lights the amber LEDs on the In meter.</p>
+
+    <div class="row" style="margin-top:16px">
+      <span class="h" style="color:var(--back-ink)">Captures</span>
+      <button class="btn primary" id="loadNam">Load capture (.nam)…</button>
+      <label class="sw"><input type="checkbox" id="normalise" checked>Even out volume</label>
+      <span id="slimRow" hidden><button class="chip" data-slim="full">Full</button><button class="chip" data-slim="lite">Lite</button></span>
+    </div>
+    <div class="caps" id="caps"></div>
+    <p class="hint">Captures are profiles of real amps and pedals, free on <a href="https://www.tone3000.com" target="_blank" rel="noopener">TONE3000</a>. Pick the .zip it downloads as it is. Both NAM A2 (the current format, with Full and Lite in one file) and the older A1 captures play. Lite is the one for phones; Full needs a reasonably quick computer. If the sound crackles, switch to Lite or pick a lighter capture. Bass, Middle, Treble and Presence still work as an EQ after a capture; its gain is fixed by the capture itself.</p>
+  </section>
+</div>
+<input type="file" id="fNam" multiple>
+<input type="file" id="fIr" accept="audio/*,.wav">
+<input type="file" id="fDi" accept="audio/*,.wav,.mp3,.m4a,.aif,.aiff,.flac">
+<div class="toast" id="toast" role="status"></div>
+
+<script id="nam-engine">
+// ---- NAM inference engine (WaveNet + LSTM), written to the NeuralAmpModelerCore weight layout ----
+// Weight order (per NeuralAmpModelerCore): WaveNet -> for each layer array: rechannel (Conv1x1, no bias),
+// then per layer: dilated conv [out][in][k] + bias, input mixin [out][cond] (no bias), 1x1 [out][in] + bias;
+// then head rechannel [out][in] (+ bias if head_bias); finally head_scale.
+// LSTM -> per layer: W (4H x (in+H)) row-major, b (4H), h0 (H), c0 (H); then head weight (H) and head bias (1).
+
+var NAM_ACT = { Tanh: 0, Fasttanh: 0, FastTanh: 0, ReLU: 1, Hardtanh: 2, HardTanh: 2, Sigmoid: 3, LeakyReLU: 4, LeakyHardtanh: 5, SiLU: 6, Swish: 6 };
+
+function namActCode(a) {
+  var name = typeof a === 'string' ? a : (a && (a.type || a.name));
+  if (!(name in NAM_ACT)) throw new Error('Unsupported activation "' + name + '"');
+  var slope = (a && typeof a === 'object' && typeof a.negative_slope === 'number') ? a.negative_slope : 0.01;
+  return { code: NAM_ACT[name], slope: slope };
+}
+
+function namApply(z, from, to, code, slope) {
+  var i, v;
+  switch (code) {
+    case 0: for (i = from; i < to; i++) z[i] = Math.tanh(z[i]); break;
+    case 1: for (i = from; i < to; i++) if (z[i] < 0) z[i] = 0; break;
+    case 2: for (i = from; i < to; i++) { v = z[i]; z[i] = v > 1 ? 1 : (v < -1 ? -1 : v); } break;
+    case 3: for (i = from; i < to; i++) z[i] = 1 / (1 + Math.exp(-z[i])); break;
+    case 4: for (i = from; i < to; i++) if (z[i] < 0) z[i] *= slope; break;
+    case 5: for (i = from; i < to; i++) { v = z[i]; z[i] = v > 1 ? 1 + (v - 1) * slope : (v < -1 ? -1 + (v + 1) * slope : v); } break;
+    case 6: for (i = from; i < to; i++) { v = z[i]; z[i] = v / (1 + Math.exp(-v)); } break;
+  }
+}
+
+function nextPow2(n) { var p = 1; while (p < n) p <<= 1; return p; }
+
+function namFastTanh(x) { // NeuralAmpModelerCore's fast tanh (max error ~4e-4)
+  var ax = x < 0 ? -x : x, x2 = x * x, u = x + 0.814642734961073 * x * ax;
+  return (x * (2.45550750702956 + 2.45550750702956 * ax + (0.893229853513558 + 0.821226666969744 * ax) * x2)) /
+    (2.44506634652299 + (2.44506634652299 + x2) * (u < 0 ? -u : u));
+}
+
+function namIsActive(v) { // FiLM / head1x1 style {active: bool} objects; absent, null or false = inactive
+  if (!v || v === true) return v === true;
+  return typeof v === 'object' ? v.active !== false : false;
+}
+
+// One WaveNet layer array, parsed from the A1 or A2 JSON layout.
+// A1: kernel_size + activation string + head_size/head_bias. A2: kernel_sizes[] + activation[] + head{out_channels,kernel_size,bias}.
+function namParseLayerArray(lc, ai) {
+  var where = 'layer array ' + ai + ': ';
+  var dil = lc.dilations;
+  if (!Array.isArray(dil) || !dil.length) throw new Error(where + 'no dilations');
+  var n = dil.length, ks;
+  if (Array.isArray(lc.kernel_sizes)) { ks = lc.kernel_sizes; if (ks.length !== n) throw new Error(where + 'kernel_sizes length does not match dilations'); }
+  else if (lc.kernel_size) { ks = []; for (var i = 0; i < n; i++) ks.push(lc.kernel_size); }
+  else throw new Error(where + 'no kernel size');
+  var acts = [], a = lc.activation;
+  if (Array.isArray(a)) { if (a.length !== n) throw new Error(where + 'activation list length does not match dilations'); for (i = 0; i < n; i++) acts.push(namActCode(a[i])); }
+  else { var one = namActCode(a); for (i = 0; i < n; i++) acts.push(one); }
+  var ch = lc.channels, inS = lc.input_size, cond = lc.condition_size == null ? 1 : lc.condition_size;
+  if (cond !== 1) throw new Error(where + 'only condition_size 1 is supported');
+  if (lc.bottleneck != null && lc.bottleneck !== ch) throw new Error(where + 'bottleneck layers are not supported');
+  var gm = lc.gating_mode, gated = !!lc.gated;
+  if (gm != null) {
+    var gl = Array.isArray(gm) ? gm : [gm];
+    for (i = 0; i < gl.length; i++) { if (gl[i] === 'gated') gated = true; else if (gl[i] != null && gl[i] !== 'none') throw new Error(where + 'gating mode "' + gl[i] + '" is not supported'); }
+    if (Array.isArray(gm) && gated && gl.some(function (g) { return g !== 'gated'; })) throw new Error(where + 'mixed gating modes are not supported');
+  }
+  var sec = lc.secondary_activation;
+  if (sec != null && !(Array.isArray(sec) ? sec.every(function (v) { return v == null; }) : false)) throw new Error(where + 'secondary activations are not supported');
+  if (namIsActive(lc.head1x1)) throw new Error(where + 'head1x1 is not supported');
+  if (lc.layer1x1 && typeof lc.layer1x1 === 'object') {
+    if (lc.layer1x1.active === false) throw new Error(where + 'layers without a 1x1 are not supported');
+    if (lc.layer1x1.groups != null && lc.layer1x1.groups !== 1) throw new Error(where + 'grouped 1x1 is not supported');
+  }
+  if ((lc.groups_input != null && lc.groups_input !== 1) || (lc.groups_input_mixin != null && lc.groups_input_mixin !== 1)) throw new Error(where + 'grouped convolutions are not supported');
+  var filmKeys = ['conv_pre_film', 'conv_post_film', 'input_mixin_pre_film', 'input_mixin_post_film', 'activation_pre_film', 'activation_post_film', 'layer1x1_post_film', 'head1x1_post_film'];
+  for (i = 0; i < filmKeys.length; i++) if (namIsActive(lc[filmKeys[i]])) throw new Error(where + 'FiLM conditioning is not supported');
+  var hs, hK, hB;
+  if (lc.head && typeof lc.head === 'object') { hs = lc.head.out_channels; hK = lc.head.kernel_size || 1; hB = lc.head.bias !== false; }
+  else { hs = lc.head_size; hK = 1; hB = !!lc.head_bias; }
+  if (!hs || !hK) throw new Error(where + 'bad head');
+  // "slimmable" (slice_channels_uniform) is ignored: the full-width weights are a complete model
+  return { ch: ch, inS: inS, dil: dil, ks: ks, acts: acts, gated: gated, hs: hs, hK: hK, hB: hB };
+}
+
+function NamWaveNet(config, w, maxBlock) {
+  maxBlock = maxBlock || 128;
+  if (config.head) throw new Error('post-stack WaveNet heads are not supported');
+  if (config.condition_dsp) throw new Error('condition_dsp models are not supported');
+  if (config.in_channels != null && config.in_channels !== 1) throw new Error('only mono models are supported');
+  var p = 0;
+  function take(n) {
+    if (p + n > w.length) throw new Error('Weight list is shorter than this architecture needs');
+    var a = w.subarray(p, p + n); p += n; return a;
+  }
+  var SPAN = maxBlock * 32; // linear history buffers are rewound once every 32 blocks
+  var arrays = [];
+  for (var ai = 0; ai < config.layers.length; ai++) {
+    var P = namParseLayerArray(config.layers[ai], ai);
+    var ch = P.ch, g = P.gated ? 2 : 1, inS = P.inS, hs = P.hs;
+    var A = { ch: ch, g: g, inS: inS, hs: hs, hK: P.hK, layers: [] };
+    A.rech = new Float32Array(take(ch * inS));
+    for (var li = 0; li < P.dil.length; li++) {
+      var d = P.dil[li], K = P.ks[li];
+      var L = { d: d, K: K, act: P.acts[li].code, slope: P.acts[li].slope, conv: new Float32Array(take(g * ch * ch * K)), // file order [o][i][k]
+        convB: new Float32Array(take(g * ch)), mix: new Float32Array(take(g * ch)), w1: new Float32Array(take(ch * ch)), b1: new Float32Array(take(ch)) };
+      L.hist = (K - 1) * d;
+      L.len = L.hist + SPAN;          // per-channel stride
+      L.buf = new Float32Array(ch * L.len);
+      L.wp = L.hist;                  // write position of the current block
+      A.layers.push(L);
+    }
+    A.headW = new Float32Array(take(hs * ch * P.hK)); // [o][c][k]
+    A.headB = P.hB ? new Float32Array(take(hs)) : null;
+    A.hHist = P.hK - 1; A.hLen = A.hHist + SPAN; A.hBuf = new Float32Array(ch * A.hLen); A.hwp = A.hHist; // head accumulator history
+    A.out = new Float32Array(ch * maxBlock);
+    A.headOut = new Float32Array(hs * maxBlock);
+    A.z = new Float32Array(g * ch * maxBlock);
+    A.K = P.ks; A.dil = P.dil;
+    arrays.push(A);
+  }
+  if (p !== w.length - 1) throw new Error('Weight count mismatch: this architecture needs ' + (p + 1) + ' weights, the file has ' + w.length);
+  for (ai = 1; ai < arrays.length; ai++) {
+    if (arrays[ai].inS !== arrays[ai - 1].ch) throw new Error('Layer array ' + ai + ' input size does not match previous channels');
+    if (arrays[ai].ch !== arrays[ai - 1].hs) throw new Error('Layer array ' + ai + ' channels do not match previous head size');
+  }
+  if (arrays[0].inS !== 1) throw new Error('First layer array must take 1 input');
+  if (arrays[arrays.length - 1].hs !== 1) throw new Error('Last head size must be 1');
+  this.headScale = w[p];
+  this.arrays = arrays;
+  this.maxBlock = maxBlock;
+  this.fastTanh = true;
+  var rf = 1, macs = 0;
+  for (ai = 0; ai < arrays.length; ai++) {
+    var a2 = arrays[ai];
+    for (li = 0; li < a2.layers.length; li++) rf += (a2.layers[li].K - 1) * a2.layers[li].d;
+    rf += a2.hK - 1;
+    macs += a2.ch * a2.inS + a2.hs * a2.ch * a2.hK;
+    for (li = 0; li < a2.layers.length; li++) macs += a2.g * a2.ch * (a2.layers[li].K * a2.ch + 1) + a2.ch * a2.ch;
+  }
+  this.receptiveField = rf;
+  this.macsPerSample = macs;
+}
+
+NamWaveNet.prototype.processBlock = function (x, y, N) {
+  var arrays = this.arrays, fast = this.fastTanh, prev = null, t, c, i, o, k, v;
+  for (var ai = 0; ai < arrays.length; ai++) {
+    var A = arrays[ai], ch = A.ch, g = A.g, gch = g * ch;
+    var layers = A.layers, z = A.z;
+    // make room: rewind any buffer whose span is used up (copy its history to the front)
+    for (var li0 = 0; li0 < layers.length; li0++) {
+      var Lr = layers[li0];
+      if (Lr.wp + N > Lr.len) {
+        for (c = 0; c < ch; c++) { var cb0 = c * Lr.len; Lr.buf.copyWithin(cb0, cb0 + Lr.wp - Lr.hist, cb0 + Lr.wp); }
+        Lr.wp = Lr.hist;
+      }
+    }
+    if (A.hwp + N > A.hLen) {
+      for (c = 0; c < ch; c++) { var hb0 = c * A.hLen; A.hBuf.copyWithin(hb0, hb0 + A.hwp - A.hHist, hb0 + A.hwp); }
+      A.hwp = A.hHist;
+    }
+    // rechannel into the first layer's buffer
+    var L0 = layers[0], rech = A.rech, inS = A.inS;
+    for (c = 0; c < ch; c++) {
+      var dst = c * L0.len + L0.wp;
+      if (ai === 0) { var rc = rech[c]; for (t = 0; t < N; t++) L0.buf[dst + t] = rc * x[t]; }
+      else {
+        for (t = 0; t < N; t++) L0.buf[dst + t] = 0;
+        for (i = 0; i < inS; i++) { var rw = rech[c * inS + i], so = i * N, po = prev.out; for (t = 0; t < N; t++) L0.buf[dst + t] += rw * po[so + t]; }
+      }
+    }
+    // head accumulator for this block lives in hBuf at hwp; starts at zero, or the previous array's head output
+    var hBuf = A.hBuf, hLen = A.hLen, hwp = A.hwp;
+    for (c = 0; c < ch; c++) {
+      var hd = c * hLen + hwp;
+      if (ai === 0) for (t = 0; t < N; t++) hBuf[hd + t] = 0;
+      else { var pho = prev.headOut, pb = c * N; for (t = 0; t < N; t++) hBuf[hd + t] = pho[pb + t]; }
+    }
+    for (var li = 0; li < layers.length; li++) {
+      var L = layers[li], buf = L.buf, len = L.len, wp = L.wp, d = L.d, K = L.K, act = L.act, slope = L.slope;
+      var conv = L.conv, convB = L.convB, mix = L.mix, w1 = L.w1, b1 = L.b1;
+      var last = li === layers.length - 1, nx = last ? null : layers[li + 1];
+      // z = conv(input) + bias + mixin * x
+      for (o = 0; o < gch; o++) {
+        var zo = o * N, bo = convB[o], mo = mix[o];
+        for (t = 0; t < N; t++) z[zo + t] = bo + mo * x[t];
+        if (K === 3) {
+          var d2 = 2 * d;
+          for (i = 0; i < ch; i++) {
+            var wb3 = (o * ch + i) * 3, ib3 = i * len + wp, sa = ib3 - d2, sb = ib3 - d;
+            var w0 = conv[wb3], w1k = conv[wb3 + 1], w2 = conv[wb3 + 2];
+            for (t = 0; t < N; t++) z[zo + t] += w0 * buf[sa + t] + w1k * buf[sb + t] + w2 * buf[ib3 + t];
+          }
+        } else {
+          for (i = 0; i < ch; i++) {
+            var wb = (o * ch + i) * K, ib = i * len + wp;
+            for (k = 0; k + 1 < K; k += 2) {
+              var wka = conv[wb + k], wkb = conv[wb + k + 1], s0a = ib - (K - 1 - k) * d, s0b = s0a + d;
+              for (t = 0; t < N; t++) z[zo + t] += wka * buf[s0a + t] + wkb * buf[s0b + t];
+            }
+            if (k < K) { var wk = conv[wb + k], s0 = ib - (K - 1 - k) * d; for (t = 0; t < N; t++) z[zo + t] += wk * buf[s0 + t]; }
+          }
+        }
+      }
+      // activation
+      var nAct = ch * N;
+      if (act === 0) {
+        if (fast) for (t = 0; t < nAct; t++) z[t] = namFastTanh(z[t]);
+        else for (t = 0; t < nAct; t++) z[t] = Math.tanh(z[t]);
+      } else if (act === 4) { for (t = 0; t < nAct; t++) if (z[t] < 0) z[t] *= slope; }
+      else namApply(z, 0, nAct, act, slope);
+      if (g === 2) for (t = 0; t < nAct; t++) z[t] *= 1 / (1 + Math.exp(-z[nAct + t]));
+      // head accumulate + residual 1x1 into next layer (or array output)
+      for (c = 0; c < ch; c++) { var hh = c * hLen + hwp, zc = c * N; for (t = 0; t < N; t++) hBuf[hh + t] += z[zc + t]; }
+      for (c = 0; c < ch; c++) {
+        var od, obase;
+        if (last) { od = A.out; obase = c * N; } else { od = nx.buf; obase = c * nx.len + nx.wp; }
+        var src = c * len + wp, bc = b1[c];
+        for (t = 0; t < N; t++) od[obase + t] = buf[src + t] + bc;
+        var wr = c * ch;
+        for (i = 0; i + 1 < ch; i += 2) {
+          var wva = w1[wr + i], wvb = w1[wr + i + 1], za = i * N, zb = za + N;
+          for (t = 0; t < N; t++) od[obase + t] += wva * z[za + t] + wvb * z[zb + t];
+        }
+        if (i < ch) { var wv = w1[wr + i], zi = i * N; for (t = 0; t < N; t++) od[obase + t] += wv * z[zi + t]; }
+      }
+    }
+    for (li = 0; li < layers.length; li++) layers[li].wp += N;
+    // head rechannel: conv over the head accumulator history, hK taps (1 for A1, 16 for A2)
+    var hs = A.hs, hw = A.headW, hb = A.headB, ho = A.headOut, hK = A.hK;
+    for (o = 0; o < hs; o++) {
+      var hoo = o * N, hbv = hb ? hb[o] : 0;
+      for (t = 0; t < N; t++) ho[hoo + t] = hbv;
+      for (c = 0; c < ch; c++) {
+        var hwb = (o * ch + c) * hK, hcb = c * hLen + hwp;
+        for (k = 0; k < hK; k++) { var hwv = hw[hwb + k], hs0 = hcb - (hK - 1 - k); for (t = 0; t < N; t++) ho[hoo + t] += hwv * hBuf[hs0 + t]; }
+      }
+    }
+    A.hwp += N;
+    prev = A;
+  }
+  var hsc = this.headScale, fin = prev.headOut;
+  for (t = 0; t < N; t++) y[t] = hsc * fin[t];
+};
+
+NamWaveNet.prototype.process = function (x, y, n) {
+  var mb = this.maxBlock;
+  for (var off = 0; off < n; off += mb) {
+    var N = Math.min(mb, n - off);
+    this.processBlock(x.subarray(off, off + N), y.subarray(off, off + N), N);
+  }
+};
+
+function NamLSTM(config, w) {
+  var nl = config.num_layers, inS = config.input_size, H = config.hidden_size, p = 0;
+  function take(n) { if (p + n > w.length) throw new Error('Weight list is shorter than this LSTM needs'); var a = w.subarray(p, p + n); p += n; return a; }
+  if (inS !== 1) throw new Error('Only LSTM input_size 1 is supported');
+  this.layers = [];
+  for (var l = 0; l < nl; l++) {
+    var ins = l === 0 ? inS : H;
+    var L = { ins: ins, W: new Float32Array(take(4 * H * (ins + H))), b: new Float32Array(take(4 * H)), xh: new Float32Array(ins + H), c: null, ifgo: new Float32Array(4 * H) };
+    L.xh.set(take(H), ins);
+    L.c = new Float32Array(take(H));
+    this.layers.push(L);
+  }
+  this.headW = new Float32Array(take(H));
+  this.headB = w[p++];
+  if (p !== w.length) throw new Error('Weight count mismatch: expected ' + p + ', file has ' + w.length);
+  this.H = H;
+  this.receptiveField = 1;
+  this.macsPerSample = nl * 4 * H * (H + H) + H;
+}
+
+NamLSTM.prototype.process = function (x, y, n) {
+  var layers = this.layers, H = this.H, H2 = 2 * H, H3 = 3 * H;
+  for (var t = 0; t < n; t++) {
+    var inp = x[t];
+    for (var l = 0; l < layers.length; l++) {
+      var L = layers[l], xh = L.xh, ins = L.ins, cols = ins + H, W = L.W, b = L.b, g = L.ifgo, c = L.c, j, r;
+      if (l === 0) xh[0] = inp;
+      else { var ph = layers[l - 1].xh, po = layers[l - 1].ins; for (j = 0; j < H; j++) xh[j] = ph[po + j]; }
+      for (r = 0; r < 4 * H; r++) { var s = b[r], wb = r * cols; for (j = 0; j < cols; j++) s += W[wb + j] * xh[j]; g[r] = s; }
+      for (j = 0; j < H; j++) {
+        var ig = 1 / (1 + Math.exp(-g[j])), fg = 1 / (1 + Math.exp(-g[H + j]));
+        var gg = Math.tanh(g[H2 + j]), og = 1 / (1 + Math.exp(-g[H3 + j]));
+        c[j] = fg * c[j] + ig * gg;
+        xh[ins + j] = og * Math.tanh(c[j]);
+      }
+    }
+    var last = layers[layers.length - 1], hsum = this.headB;
+    for (j = 0; j < H; j++) hsum += this.headW[j] * last.xh[last.ins + j];
+    y[t] = hsum;
+  }
+};
+
+// Describe what is in a .nam: architecture family and the sizes available
+function namDescribe(arch, config) {
+  if (arch === 'SlimmableContainer') {
+    var subs = (config.submodels || []).map(function (sm) { return namDescribe(sm.model.architecture, sm.model.config); });
+    return { family: 'A2', sizes: subs.map(function (d) { return d.sizes[0]; }), container: true };
+  }
+  if (arch === 'LSTM') return { family: 'LSTM', sizes: ['LSTM ' + config.num_layers + '\u00d7' + config.hidden_size], container: false };
+  if (arch !== 'WaveNet') return { family: arch, sizes: ['?'], container: false };
+  var l0 = config.layers && config.layers[0];
+  if (!l0) return { family: 'WaveNet', sizes: ['?'], container: false };
+  var a2 = Array.isArray(l0.kernel_sizes) || Array.isArray(l0.activation) || (l0.head && typeof l0.head === 'object');
+  if (a2) return { family: 'A2', sizes: [l0.channels >= 8 ? 'A2 Full' : l0.channels <= 3 ? 'A2 Lite' : 'A2 ' + l0.channels + 'ch'], container: false };
+  return { family: 'A1', sizes: [({ 16: 'A1 Standard', 12: 'A1 Lite', 8: 'A1 Feather', 4: 'A1 Nano' })[l0.channels] || 'A1 ' + l0.channels + 'ch'], container: false };
+}
+
+// opts.slim: 'full' (default) or 'lite' picks the submodel of a SlimmableContainer
+function namBuild(arch, config, weights, maxBlock, opts) {
+  if (arch === 'SlimmableContainer') {
+    var subs = config.submodels;
+    if (!Array.isArray(subs) || !subs.length) throw new Error('This container has no submodels');
+    var sorted = subs.slice().sort(function (a, b) { return (a.max_value || 0) - (b.max_value || 0); });
+    var pick = (opts && opts.slim === 'lite') ? sorted[0] : sorted[sorted.length - 1];
+    var m = pick.model;
+    if (!m || !m.architecture || !m.config || !Array.isArray(m.weights)) throw new Error('A submodel in this container is incomplete');
+    return namBuild(m.architecture, m.config, new Float32Array(m.weights), maxBlock, {});
+  }
+  if (arch === 'WaveNet') return new NamWaveNet(config, weights, maxBlock);
+  if (arch === 'LSTM') return new NamLSTM(config, weights);
+  throw new Error('Architecture "' + arch + '" is not supported (WaveNet, LSTM and SlimmableContainer only)');
+}
+
+function namPrewarm(model) {
+  var n = Math.max(4096, model.receptiveField + 256);
+  var z = new Float32Array(128), y = new Float32Array(128);
+  for (var i = 0; i < n; i += 128) model.process(z, y, 128);
+}
+</script>
+<script>
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const dbToLin = db => Math.pow(10, db / 20);
+
+/* ---------- settings ---------- */
+const DEFAULTS = { amp: 'crunch', cab: '4x12', src: 'interface', inCh: '1', inDev: '', outDev: '', normalise: true, captureId: null, irId: null, slim: (matchMedia('(max-width: 760px)').matches ? 'lite' : 'full'),
+  knobs: { gate: 3, input: 5, gain: 5.5, bass: 5, mid: 5, treble: 5.5, presence: 5, master: 5, room: 2 } };
+let S = JSON.parse(JSON.stringify(DEFAULTS));
+try { const saved = JSON.parse(localStorage.getItem('anthos-amp:settings') || 'null'); if (saved) S = Object.assign(S, saved, { knobs: Object.assign(S.knobs, saved.knobs || {}) }); } catch (e) {}
+let saveT = 0;
+function save() { clearTimeout(saveT); saveT = setTimeout(() => { try { localStorage.setItem('anthos-amp:settings', JSON.stringify(S)); } catch (e) {} }, 300); }
+
+function toast(msg, err) { const t = $('#toast'); t.textContent = msg; t.className = 'toast' + (err ? ' err' : ''); t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', err ? 7000 : 3500); }
+
+/* ---------- storage for captures and IRs (IndexedDB) ---------- */
+const DB = {
+  db: null,
+  async open() {
+    if (this.db) return this.db;
+    this.db = await new Promise((res, rej) => {
+      const r = indexedDB.open('anthos-amp', 1);
+      r.onupgradeneeded = () => { r.result.createObjectStore('captures', { keyPath: 'id' }); r.result.createObjectStore('irs', { keyPath: 'id' }); };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    });
+    return this.db;
+  },
+  async tx(store, mode, fn) { const db = await this.open(); return new Promise((res, rej) => { const t = db.transaction(store, mode); const st = t.objectStore(store); const r = fn(st); t.oncomplete = () => res(r && r.result); t.onerror = () => rej(t.error); }); },
+  all(store) { return this.tx(store, 'readonly', st => st.getAll()); },
+  get(store, id) { return this.tx(store, 'readonly', st => st.get(id)); },
+  put(store, v) { return this.tx(store, 'readwrite', st => st.put(v)); },
+  del(store, id) { return this.tx(store, 'readwrite', st => st.delete(id)); }
+};
+
+/* ---------- amp voicings (DSP channels) ---------- */
+const AMPS = {
+  clean:  { hp: 70,  bright: 4, g1: [0.8, 9],  d1: 1.4, a1: 0.04, lp1: 9500, hp2: 45,  g2: 1.1, d2: 1.1, a2: 0,    bassF: 120, midF: 480, midQ: 0.6, trebF: 2600, pw: 1.3, trim: 0.41 },
+  crunch: { hp: 90,  bright: 3, g1: [2.5, 45], d1: 2.4, a1: 0.18, lp1: 6800, hp2: 110, g2: 2.2, d2: 1.8, a2: 0.08, bassF: 110, midF: 700, midQ: 0.8, trebF: 2800, pw: 1.6, trim: 0.225 },
+  lead:   { hp: 140, bright: 2, g1: [8, 220],  d1: 2.8, a1: 0.22, lp1: 5200, hp2: 170, g2: 5.5, d2: 2.6, a2: 0.12, bassF: 100, midF: 750, midQ: 0.9, trebF: 3000, pw: 1.9, trim: 0.2 },
+  bass:   { hp: 32,  bright: 2, g1: [0.9, 22], d1: 1.6, a1: 0.1,  lp1: 7500, hp2: 30,  g2: 1.2, d2: 1.2, a2: 0.04, bassF: 80,  midF: 550, midQ: 0.7, trebF: 3200, pw: 1.4, trim: 0.29 }
+};
+const CABS = {
+  '1x12': { hp: [78, 0.7], res: [115, 4, 1.2], dip: [520, -2, 1.0], bump: [1700, 2.5, 1.0], lp: [5400, 0.7, 6800, 1.0] },
+  '2x12': { hp: [72, 0.8], res: [100, 4.5, 1.3], dip: [450, -3, 1.0], bump: [2000, 3, 1.1],  lp: [4900, 0.75, 6100, 1.1] },
+  '4x12': { hp: [66, 0.9], res: [92, 5.5, 1.4],  dip: [400, -4, 1.0], bump: [2400, 4, 1.3],  lp: [4300, 0.8, 5300, 1.2] },
+  '4x10': { hp: [42, 0.8], res: [70, 4, 1.1],    dip: [340, -2, 0.9], bump: [1200, 2, 0.9],  lp: [3900, 0.7, 5000, 0.9] }
+};
+function shaperCurve(drive, asym) {
+  const n = 4096, c = new Float32Array(n), off = Math.tanh(drive * asym), norm = Math.max(Math.abs(Math.tanh(drive * (1 + asym)) - off), Math.abs(Math.tanh(drive * (-1 + asym)) - off));
+  for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = (Math.tanh(drive * (x + asym)) - off) / norm; }
+  return c;
+}
+
+/* ---------- knobs ---------- */
+const KNOBS = [
+  { id: 'gate', label: 'Gate', fmt: v => v < 0.05 ? 'off' : Math.round(-80 + v * 4.5) + ' dB' },
+  { id: 'input', label: 'Input', fmt: v => { const d = (v - 5) * 2.4; return (d > 0 ? '+' : '') + d.toFixed(1) + ' dB'; } },
+  { id: 'gain', label: 'Gain' },
+  { id: 'bass', label: 'Bass' }, { id: 'mid', label: 'Middle' }, { id: 'treble', label: 'Treble' }, { id: 'presence', label: 'Presence' },
+  { id: 'master', label: 'Master' }
+];
+const knobEls = {};
+function dialSVG() {
+  let ticks = '';
+  for (let i = 0; i <= 10; i++) {
+    const a = (-135 + i * 27) * Math.PI / 180, r1 = 36, r2 = i % 5 === 0 ? 31.5 : 33;
+    ticks += `<line x1="${50 + Math.sin(a) * r1}" y1="${50 - Math.cos(a) * r1}" x2="${50 + Math.sin(a) * r2}" y2="${50 - Math.cos(a) * r2}" stroke="currentColor" stroke-width="${i % 5 === 0 ? 1.6 : 1}"/>`;
+  }
+  return `<svg viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true">
+    <g color="#2c2216">${ticks}</g>
+    <circle cx="50" cy="52" r="27" fill="rgba(0,0,0,.28)"/>
+    <g class="rot"><circle cx="50" cy="50" r="27" fill="url(#kg)" stroke="#8d7f5f" stroke-width="1"/>
+      <circle cx="50" cy="50" r="20" fill="url(#kt)"/>
+      <line x1="50" y1="26" x2="50" y2="41" stroke="#2c2216" stroke-width="3.2" stroke-linecap="round"/></g></svg>`;
+}
+function makeKnob(def, slot, small) {
+  const wrap = document.createElement('div'); wrap.className = 'kn';
+  const dial = document.createElement('div'); dial.className = 'dial'; dial.tabIndex = 0; dial.setAttribute('role', 'slider');
+  dial.setAttribute('aria-label', def.label); dial.setAttribute('aria-valuemin', '0'); dial.setAttribute('aria-valuemax', '10'); dial.id = 'k-' + def.id;
+  dial.innerHTML = dialSVG();
+  wrap.appendChild(dial);
+  if (!small) { const l = document.createElement('label'); l.textContent = def.label; l.htmlFor = dial.id; wrap.appendChild(l); }
+  const val = document.createElement('div'); val.className = 'val'; wrap.appendChild(val);
+  slot.appendChild(wrap);
+  const rot = dial.querySelector('.rot');
+  const el = { wrap, dial, rot, val, def, set(v, quiet) {
+    v = Math.max(0, Math.min(10, Math.round(v * 20) / 20)); S.knobs[def.id] = v;
+    rot.setAttribute('transform', `rotate(${-135 + v * 27} 50 50)`);
+    dial.setAttribute('aria-valuenow', v.toFixed(1)); dial.setAttribute('aria-valuetext', def.fmt ? def.fmt(v) : v.toFixed(1));
+    val.textContent = def.fmt ? def.fmt(v) : v.toFixed(1);
+    if (!quiet) { applyParams(); save(); }
+  } };
+  let startY = 0, startX = 0, startV = 0, dragging = false;
+  dial.addEventListener('pointerdown', e => { if (el.wrap.classList.contains('off')) return; dragging = true; startY = e.clientY; startX = e.clientX; startV = S.knobs[def.id]; dial.setPointerCapture(e.pointerId); e.preventDefault(); });
+  dial.addEventListener('pointermove', e => { if (!dragging) return; const fine = e.shiftKey ? 0.25 : 1; el.set(startV + ((startY - e.clientY) + (e.clientX - startX) * 0.5) / 18 * fine); });
+  const end = () => dragging = false; dial.addEventListener('pointerup', end); dial.addEventListener('pointercancel', end);
+  dial.addEventListener('dblclick', () => el.set(DEFAULTS.knobs[def.id]));
+  dial.addEventListener('wheel', e => { if (el.wrap.classList.contains('off')) return; e.preventDefault(); el.set(S.knobs[def.id] - Math.sign(e.deltaY) * 0.25); }, { passive: false });
+  dial.addEventListener('keydown', e => {
+    const step = e.shiftKey ? 1 : 0.25, k = e.key;
+    if (k === 'ArrowUp' || k === 'ArrowRight') el.set(S.knobs[def.id] + step); else if (k === 'ArrowDown' || k === 'ArrowLeft') el.set(S.knobs[def.id] - step);
+    else if (k === 'Home') el.set(0); else if (k === 'End') el.set(10); else return; e.preventDefault();
+  });
+  knobEls[def.id] = el; el.set(S.knobs[def.id], true);
+  return el;
+}
+const defs = `<svg width="0" height="0" style="position:absolute"><defs>
+  <radialGradient id="kg" cx="40%" cy="32%" r="75%"><stop offset="0" stop-color="#fffaf0"/><stop offset=".55" stop-color="#efe6cf"/><stop offset="1" stop-color="#b9ab86"/></radialGradient>
+  <radialGradient id="kt" cx="45%" cy="38%" r="70%"><stop offset="0" stop-color="#fbf5e6"/><stop offset="1" stop-color="#ddd1b1"/></radialGradient></defs></svg>`;
+document.body.insertAdjacentHTML('afterbegin', defs);
+KNOBS.forEach(d => makeKnob(d, $('#knobs')));
+makeKnob({ id: 'room', label: 'Room', fmt: v => v < 0.05 ? 'dry' : Math.round(v * 10) + '%' }, $('#roomSlot'), true);
+
+/* ---------- LED meters ---------- */
+function buildLeds(el) { for (let i = 0; i < 12; i++) el.appendChild(document.createElement('i')); return [...el.children]; }
+const ledIn = buildLeds($('#mIn')), ledOut = buildLeds($('#mOut'));
+function showLeds(leds, peak) { // 12 LEDs from -48 to 0 dBFS
+  const db = 20 * Math.log10(peak + 1e-9);
+  leds.forEach((l, i) => { const th = -48 + i * 4.2; l.className = db >= th ? (i >= 11 ? 'r' : i >= 8 ? 'a' : 'g') : ''; });
+}
+
+/* ---------- audio ---------- */
+let ctx = null, N = null, running = false, micStream = null, diSource = null, riffBuf = null, fileBuf = null;
+let model = null;      // { id, name, sr, arch, config, weights, loudness, info }
+let meterIn = 0, meterGate = false, meterLoad = 0, wakeLock = null;
+const WORKLET_SRC = $('#nam-engine').textContent + `
+class AnthosRig extends AudioWorkletProcessor {
+  constructor() {
+    super(); this.model = null; this.useModel = false; this.inGain = 1; this.outGain = 1;
+    this.gateOn = false; this.thr = 0.001; this.env = 0; this.gg = 1; this.hold = 0; this.fade = 1;
+    this.x = new Float32Array(128); this.y = new Float32Array(128); this.pk = 0; this.busy = 0; this.frames = 0;
+    this.port.onmessage = e => this.onMsg(e.data);
+  }
+  onMsg(m) {
+    if (m.type === 'params') { this.inGain = m.inGain; this.outGain = m.outGain; this.gateOn = m.gateOn; this.thr = m.thr; this.useModel = m.useModel; }
+    else if (m.type === 'model') {
+      try { const md = namBuild(m.arch, m.config, m.weights, 128, { slim: m.slim }); namPrewarm(md); this.model = md; this.fade = 0; this.port.postMessage({ type: 'model-ok', id: m.id }); }
+      catch (err) { this.port.postMessage({ type: 'model-error', id: m.id, error: String(err && err.message || err) }); }
+    } else if (m.type === 'clear') this.model = null;
+  }
+  process(inputs, outputs) {
+    const out = outputs[0] && outputs[0][0]; if (!out) return true;
+    const n = out.length, inp = inputs[0] && inputs[0][0];
+    const t0 = Date.now();
+    if (this.x.length < n) { this.x = new Float32Array(n); this.y = new Float32Array(n); }
+    const x = this.x, y = this.y, rel = Math.exp(-1 / (0.08 * sampleRate)), openK = 1 - Math.exp(-1 / (0.001 * sampleRate)), closeK = 1 - Math.exp(-1 / (0.04 * sampleRate));
+    let pk = this.pk, env = this.env, gg = this.gg, hold = this.hold;
+    for (let i = 0; i < n; i++) {
+      const v = inp ? inp[i] : 0, a = v < 0 ? -v : v;
+      if (a > pk) pk = a;
+      env = a > env ? a : env * rel;
+      let target = 1;
+      if (this.gateOn) {
+        if (env > this.thr) hold = (0.05 * sampleRate) | 0;
+        else if (env < this.thr * 0.5) { if (hold > 0) hold--; }
+        target = hold > 0 ? 1 : 0;
+      }
+      gg += (target - gg) * (target > gg ? openK : closeK);
+      x[i] = v * this.inGain * gg;
+    }
+    this.pk = pk; this.env = env; this.gg = gg; this.hold = hold;
+    if (this.useModel && this.model) {
+      this.model.process(x, y, n);
+      const og = this.outGain;
+      for (let i = 0; i < n; i++) { if (this.fade < 1) this.fade = Math.min(1, this.fade + 1 / 960); out[i] = y[i] * og * this.fade; }
+    } else if (this.useModel) out.fill(0);
+    else for (let i = 0; i < n; i++) out[i] = x[i];
+    this.busy += Date.now() - t0; this.frames += n;
+    if (this.frames >= sampleRate / 12) {
+      this.port.postMessage({ type: 'meter', inPeak: this.pk, gate: gg > 0.5, load: this.busy / (this.frames / sampleRate * 1000) });
+      this.pk = 0; this.busy = 0; this.frames = 0;
+    }
+    return true;
+  }
+}
+registerProcessor('anthos-rig', AnthosRig);`;
+
+function biq(type, f, q, g) { const b = ctx.createBiquadFilter(); b.type = type; if (f) b.frequency.value = f; if (q) b.Q.value = q; if (g) b.gain.value = g; return b; }
+function gainN(v) { const g = ctx.createGain(); g.gain.value = v == null ? 1 : v; return g; }
+function chain(...ns) { for (let i = 0; i < ns.length - 1; i++) ns[i].connect(ns[i + 1]); return ns; }
+function setP(param, v, t) { param.setTargetAtTime(v, ctx.currentTime, t || 0.03); }
+
+function makeReverbIR(sec) {
+  const sr = ctx.sampleRate, len = Math.floor(sr * sec), pre = Math.floor(sr * 0.012), buf = ctx.createBuffer(2, len, sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch); let lp = 0;
+    for (let i = pre; i < len; i++) { const t = (i - pre) / sr, k = 0.25 + 0.7 * (t / sec); lp += (Math.random() * 2 - 1 - lp) * (1 - k); d[i] = lp * Math.exp(-t * 3.2) * (1 - Math.exp(-t * 60)); }
+  }
+  return buf;
+}
+
+async function buildGraph(rate) {
+  ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: rate, latencyHint: 'interactive' });
+  try { await ctx.audioWorklet.addModule(URL.createObjectURL(new Blob([WORKLET_SRC], { type: 'application/javascript' }))); }
+  catch (e) {
+    try { await ctx.audioWorklet.addModule('data:application/javascript;charset=utf-8,' + encodeURIComponent(WORKLET_SRC)); } // opened from a local file
+    catch (e2) {
+      await ctx.close().catch(() => {}); ctx = null;
+      throw new Error(/CSP|Security/i.test(String(e2)) ? 'this page is open inside a preview that blocks audio engines. Open Anthos Amp from your published site (or the saved file) in Safari or Chrome.' : (e2.message || e2));
+    }
+  }
+  N = {};
+  N.inMix = gainN(1);
+  N.rig = new AudioWorkletNode(ctx, 'anthos-rig', { numberOfInputs: 1, numberOfOutputs: 1, outputChannelCount: [1], channelCount: 1, channelCountMode: 'explicit', channelInterpretation: 'speakers' });
+  N.inMix.connect(N.rig);
+  N.rig.port.onmessage = e => onRigMsg(e.data);
+  // DSP amp path
+  N.dspIn = gainN(0); N.hp1 = biq('highpass', 80, 0.7); N.bright = biq('highshelf', 2200, 0, 3); N.g1 = gainN(1);
+  N.ws1 = ctx.createWaveShaper(); N.ws1.oversample = '4x'; N.lp1 = biq('lowpass', 6000, 0.6); N.hp2 = biq('highpass', 100, 0.6);
+  N.g2 = gainN(1); N.ws2 = ctx.createWaveShaper(); N.ws2.oversample = '4x';
+  N.bass = biq('lowshelf', 110); N.mid = biq('peaking', 700, 0.8); N.treb = biq('highshelf', 2800);
+  N.g3 = gainN(1); N.ws3 = ctx.createWaveShaper(); N.ws3.oversample = '2x'; N.ws3.curve = shaperCurve(1.3, 0);
+  N.pres = biq('highshelf', 3800); N.dspOut = gainN(1);
+  chain(N.rig, N.dspIn, N.hp1, N.bright, N.g1, N.ws1, N.lp1, N.hp2, N.g2, N.ws2, N.bass, N.mid, N.treb, N.g3, N.ws3, N.pres, N.dspOut);
+  // capture path: post-EQ
+  N.namIn = gainN(0); N.eqBass = biq('lowshelf', 110); N.eqMid = biq('peaking', 700, 0.9); N.eqTreb = biq('highshelf', 2800); N.eqPres = biq('highshelf', 5000);
+  chain(N.rig, N.namIn, N.eqBass, N.eqMid, N.eqTreb, N.eqPres);
+  // cabinet
+  N.cabIn = gainN(1); N.dspOut.connect(N.cabIn); N.eqPres.connect(N.cabIn);
+  N.cabOff = gainN(0); N.cabSim = gainN(0); N.cabIr = gainN(0); N.post = gainN(1);
+  N.cHp = biq('highpass'); N.cRes = biq('peaking'); N.cDip = biq('peaking'); N.cBump = biq('peaking'); N.cLp1 = biq('lowpass'); N.cLp2 = biq('lowpass');
+  N.cabIn.connect(N.cabOff); N.cabOff.connect(N.post);
+  chain(N.cabIn, N.cHp, N.cRes, N.cDip, N.cBump, N.cLp1, N.cLp2, N.cabSim, N.post);
+  N.irConv = ctx.createConvolver(); N.cabIn.connect(N.irConv); N.irConv.connect(N.cabIr); N.cabIr.connect(N.post);
+  // output
+  N.dc = biq('highpass', 25, 0.7); N.master = gainN(0.5);
+  N.revSend = gainN(0); N.rev = ctx.createConvolver(); N.rev.buffer = makeReverbIR(2.2);
+  N.limiter = ctx.createDynamicsCompressor(); N.limiter.threshold.value = -2; N.limiter.knee.value = 0; N.limiter.ratio.value = 20; N.limiter.attack.value = 0.001; N.limiter.release.value = 0.08;
+  N.an = ctx.createAnalyser(); N.an.fftSize = 1024; N.anBuf = new Float32Array(1024);
+  chain(N.post, N.dc, N.master, N.limiter, N.an, ctx.destination);
+  chain(N.master, N.revSend, N.rev, N.limiter);
+  // input channel pick
+  N.split = ctx.createChannelSplitter(2); N.pick1 = gainN(1); N.pick2 = gainN(0);
+  N.split.connect(N.pick1, 0); N.split.connect(N.pick2, 1); N.pick1.connect(N.inMix); N.pick2.connect(N.inMix);
+  if (S.irId) { const ir = await DB.get('irs', S.irId).catch(() => null); if (ir) await setIR(ir, true); }
+  if (S.outDev && ctx.setSinkId) ctx.setSinkId(S.outDev).catch(() => {});
+  applyAll();
+  if (model) sendModel();
+}
+
+async function power() {
+  if (running) { await stopAudio(); return; }
+  try {
+    const rate = model && model.sr ? model.sr : 48000;
+    await buildGraph(rate);
+    await ctx.resume();
+    running = true; $('#power').classList.add('on'); $('#power').setAttribute('aria-pressed', 'true'); $('#powerLabel').textContent = 'On';
+    await connectSource();
+    requestWake();
+    requestAnimationFrame(tick);
+  } catch (e) { toast('Could not start audio: ' + (e.message || e), true); console.error(e); }
+}
+async function stopAudio() {
+  running = false;
+  if (diSource) { try { diSource.stop(); } catch (e) {} diSource = null; }
+  if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+  if (ctx) { await ctx.close().catch(() => {}); ctx = null; N = null; }
+  $('#power').classList.remove('on'); $('#power').setAttribute('aria-pressed', 'false'); $('#powerLabel').textContent = 'Power';
+  $('#note').textContent = 'Press Power to start';
+  showLeds(ledIn, 0); showLeds(ledOut, 0);
+  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
+}
+async function restartAt(rate) { // captures carry a sample rate; the audio engine runs at the capture's rate
+  if (!running || !ctx || ctx.sampleRate === rate) return;
+  await stopAudio(); await power();
+}
+async function requestWake() { try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (running && document.visibilityState === 'visible') { requestWake(); if (ctx && ctx.state !== 'running') ctx.resume(); } });
+
+async function connectSource() {
+  if (!running) return;
+  if (diSource) { try { diSource.stop(); } catch (e) {} diSource.disconnect(); diSource = null; }
+  if (N.micNode) { N.micNode.disconnect(); N.micNode = null; }
+  if (S.src === 'interface') {
+    try {
+      if (!micStream) {
+        micStream = await navigator.mediaDevices.getUserMedia({ audio: {
+          deviceId: S.inDev ? { exact: S.inDev } : undefined, echoCancellation: false, noiseSuppression: false, autoGainControl: false,
+          channelCount: { ideal: 2 }, latency: { ideal: 0 } } });
+        listDevices();
+      }
+      N.micNode = ctx.createMediaStreamSource(micStream);
+      N.micNode.connect(N.split);
+      const chs = (micStream.getAudioTracks()[0].getSettings().channelCount) || 1;
+      $('#inCh').disabled = chs < 2; if (chs < 2) $('#inCh').value = '1';
+      applyPick();
+    } catch (e) {
+      micStream = null;
+      if (e.name === 'OverconstrainedError') { S.inDev = ''; save(); return connectSource(); }
+      toast(e.name === 'NotAllowedError' ? 'Input blocked. Allow microphone access for this page, or use Test riff.' : 'Input failed: ' + (e.message || e.name), true);
+    }
+  } else {
+    const buf = S.src === 'riff' ? (riffBuf && riffBuf.sampleRate === ctx.sampleRate ? riffBuf : (riffBuf = makeRiff())) : fileBuf;
+    if (!buf) { toast('Choose a DI file first'); return; }
+    diSource = ctx.createBufferSource(); diSource.buffer = buf; diSource.loop = true; diSource.connect(N.inMix); diSource.start();
+  }
+}
+function applyPick() {
+  if (!N) return; const v = $('#inCh').value; S.inCh = v; save();
+  N.pick1.gain.value = v === '2' ? 0 : 1; N.pick2.gain.value = v === '1' ? 0 : 1;
+  if (v === 'both') { N.pick1.gain.value = 0.7; N.pick2.gain.value = 0.7; }
+}
+async function listDevices() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+  const ds = await navigator.mediaDevices.enumerateDevices();
+  const ins = ds.filter(d => d.kind === 'audioinput'), outs = ds.filter(d => d.kind === 'audiooutput');
+  $('#inDev').innerHTML = '<option value="">Default input</option>' + ins.filter(d => d.deviceId && d.deviceId !== 'default').map(d => `<option value="${d.deviceId}">${esc(d.label || 'Input')}</option>`).join('');
+  $('#inDev').value = S.inDev || '';
+  if (ctx && ctx.setSinkId && outs.length) {
+    $('#outDev').hidden = false;
+    $('#outDev').innerHTML = '<option value="">Default output</option>' + outs.filter(d => d.deviceId && d.deviceId !== 'default').map(d => `<option value="${d.deviceId}">${esc(d.label || 'Output')}</option>`).join('');
+    $('#outDev').value = S.outDev || '';
+  }
+}
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- test riff: plucked-string DI, 4 bars at 100 bpm ---------- */
+function makeRiff() {
+  const sr = ctx.sampleRate, beat = 60 / 100, len = Math.floor(sr * beat * 16), buf = ctx.createBuffer(1, len, sr), out = buf.getChannelData(0);
+  const E = 82.41, hz = s => E * Math.pow(2, s / 12);
+  // [startBeat, semitones (from low E), durationBeats, palmMuted, power chord]
+  const ev = [];
+  const bar1 = [[0, 0, .5, 1, 1], [.5, 0, .5, 1, 1], [1, 0, .5, 1, 1], [1.5, 3, .5, 0, 1], [2, 0, .5, 1, 1], [2.5, 5, .5, 0, 1], [3, 0, .5, 1, 1], [3.5, 6, .5, 0, 1]];
+  for (let b = 0; b < 3; b++) bar1.forEach(e => ev.push([e[0] + b * 4, e[1], e[2], e[3], e[4]]));
+  [[12, 12, .5], [12.5, 15, .5], [13, 17, .5], [13.5, 15, .5], [14, 12, .5], [14.5, 10, .5], [15, 12, 1]].forEach(e => ev.push([e[0], e[1], e[2], 0, 0]));
+  const pluck = (start, f, dur, muted, amp) => {
+    const n0 = Math.floor(start * sr), P = sr / f, L = Math.floor(P), frac = P - L, line = new Float32Array(L + 2);
+    for (let i = 0; i < line.length; i++) line[i] = (Math.random() * 2 - 1);
+    let lp = 0; for (let i = 0; i < line.length; i++) { lp += (line[i] - lp) * (muted ? 0.35 : 0.7); line[i] = lp; }
+    const decay = muted ? 0.975 : 0.9965, n = Math.floor(Math.min(dur * (muted ? 1 : 1.6), 3) * sr);
+    let idx = 0, prev = 0;
+    for (let i = 0; i < n && n0 + i < len; i++) {
+      const a = line[idx], b = line[(idx + 1) % L];
+      const v = decay * (a * (1 - frac * .5) + b * (frac * .5) + prev) * 0.5; prev = a;
+      line[idx] = v; idx = (idx + 1) % L;
+      const env = muted ? Math.exp(-i / (sr * 0.09)) : (i > n - 400 ? (n - i) / 400 : 1);
+      out[n0 + i] += a * amp * env;
+    }
+  };
+  ev.forEach(([st, s, d, m, pc]) => { const t = st * beat; pluck(t, hz(s), d * beat, m, .32); if (pc) { pluck(t + .004, hz(s + 7), d * beat, m, .26); pluck(t + .008, hz(s + 12), d * beat, m, .18); } });
+  let pk = 0; for (let i = 0; i < len; i++) pk = Math.max(pk, Math.abs(out[i]));
+  const g = 0.35 / (pk || 1); for (let i = 0; i < len; i++) out[i] *= g;
+  return buf;
+}
+
+/* ---------- parameters ---------- */
+function applyAll() { applyAmp(); applyCab(); applyParams(); }
+function applyAmp() {
+  if (!N) return;
+  const cap = S.amp === 'capture';
+  setP(N.dspIn.gain, cap ? 0 : 1, 0.01); setP(N.namIn.gain, cap ? 1 : 0, 0.01);
+  if (!cap) {
+    const a = AMPS[S.amp];
+    N.hp1.frequency.value = a.hp; N.bright.gain.value = a.bright; N.ws1.curve = shaperCurve(a.d1, a.a1); N.lp1.frequency.value = a.lp1; N.hp2.frequency.value = a.hp2;
+    N.g2.gain.value = a.g2; N.ws2.curve = shaperCurve(a.d2, a.a2); N.bass.frequency.value = a.bassF; N.mid.frequency.value = a.midF; N.mid.Q.value = a.midQ; N.treb.frequency.value = a.trebF;
+    N.g3.gain.value = a.pw;
+  }
+  sendParams();
+}
+function applyCab() {
+  if (!N) return;
+  const c = S.cab, sim = CABS[c];
+  setP(N.cabOff.gain, c === 'off' ? 1 : 0, 0.01); setP(N.cabSim.gain, sim ? 1 : 0, 0.01); setP(N.cabIr.gain, c === 'ir' ? 1 : 0, 0.01);
+  if (sim) {
+    N.cHp.frequency.value = sim.hp[0]; N.cHp.Q.value = sim.hp[1];
+    N.cRes.frequency.value = sim.res[0]; N.cRes.gain.value = sim.res[1]; N.cRes.Q.value = sim.res[2];
+    N.cDip.frequency.value = sim.dip[0]; N.cDip.gain.value = sim.dip[1]; N.cDip.Q.value = sim.dip[2];
+    N.cBump.frequency.value = sim.bump[0]; N.cBump.gain.value = sim.bump[1]; N.cBump.Q.value = sim.bump[2];
+    N.cLp1.frequency.value = sim.lp[0]; N.cLp1.Q.value = sim.lp[1]; N.cLp2.frequency.value = sim.lp[2]; N.cLp2.Q.value = sim.lp[3];
+  }
+}
+function tone(v) { return (v - 5) * 2.4; } // knob 0..10 -> -12..+12 dB
+function applyParams() {
+  const k = S.knobs;
+  knobEls.gain.wrap.classList.toggle('off', S.amp === 'capture');
+  if (!N) return;
+  const cap = S.amp === 'capture';
+  if (!cap) {
+    const a = AMPS[S.amp];
+    setP(N.g1.gain, a.g1[0] * Math.pow(a.g1[1] / a.g1[0], k.gain / 10));
+    setP(N.bass.gain, tone(k.bass)); setP(N.mid.gain, tone(k.mid)); setP(N.treb.gain, tone(k.treble)); setP(N.pres.gain, (k.presence - 5) * 1.8);
+    setP(N.dspOut.gain, a.trim); // trims calibrated so default settings sit near -18 dB RMS, like normalised captures
+  }
+  setP(N.eqBass.gain, cap ? tone(k.bass) : 0); setP(N.eqMid.gain, cap ? tone(k.mid) : 0); setP(N.eqTreb.gain, cap ? tone(k.treble) : 0); setP(N.eqPres.gain, cap ? (k.presence - 5) * 1.2 : 0);
+  const m = k.master / 10; setP(N.master.gain, m * m * 2);
+  setP(N.revSend.gain, k.room / 10 * 0.55);
+  sendParams();
+}
+function sendParams() {
+  if (!N) return;
+  const k = S.knobs, cap = S.amp === 'capture';
+  let outGain = 1;
+  if (cap && model && S.normalise && typeof model.loudness === 'number') outGain = dbToLin(-18 - model.loudness);
+  N.rig.port.postMessage({ type: 'params', inGain: dbToLin((k.input - 5) * 2.4), outGain, gateOn: k.gate >= 0.05, thr: dbToLin(-80 + k.gate * 4.5), useModel: cap });
+}
+function onRigMsg(m) {
+  if (m.type === 'meter') { meterIn = m.inPeak; meterGate = m.gate; meterLoad = m.load; }
+  else if (m.type === 'model-error') toast('This capture would not load: ' + m.error, true);
+}
+
+let lastNote = 0;
+function tick(ts) {
+  if (!running || !N) return;
+  N.an.getFloatTimeDomainData(N.anBuf); let pk = 0; for (let i = 0; i < N.anBuf.length; i++) { const a = Math.abs(N.anBuf[i]); if (a > pk) pk = a; }
+  showLeds(ledIn, meterIn); showLeds(ledOut, pk);
+  $('#gateLamp').classList.toggle('open', meterGate || S.knobs.gate < 0.05);
+  if (ts - lastNote > 400) {
+    lastNote = ts;
+    const lat = ((ctx.baseLatency || 0) + (ctx.outputLatency || 0)) * 1000;
+    let txt = `${ctx.sampleRate / 1000} kHz` + (lat ? `, output latency ${lat.toFixed(0)} ms` : '');
+    if (S.amp === 'capture') txt += model ? `, capture load ${Math.round(meterLoad * 100)}%` + (meterLoad > 0.7 ? ' (try a lighter capture)' : '') : ', no capture loaded';
+    $('#note').textContent = txt;
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ---------- captures ---------- */
+function describe(json) { return namDescribe(json.architecture, json.config).sizes.join(' + '); }
+// Minimal zip reader (TONE3000 downloads are zips): stored or deflate entries, via DecompressionStream
+async function unzip(buf) {
+  const u8 = new Uint8Array(buf), dv = new DataView(buf), out = [];
+  let e = -1;
+  for (let i = u8.length - 22; i >= Math.max(0, u8.length - 65557); i--) if (dv.getUint32(i, true) === 0x06054b50) { e = i; break; }
+  if (e < 0) throw new Error('not a readable zip');
+  let n = dv.getUint16(e + 10, true), p = dv.getUint32(e + 16, true);
+  const dec = new TextDecoder();
+  for (let k = 0; k < n; k++) {
+    if (dv.getUint32(p, true) !== 0x02014b50) break;
+    const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), nlen = dv.getUint16(p + 28, true),
+      xlen = dv.getUint16(p + 30, true), clen = dv.getUint16(p + 32, true), loff = dv.getUint32(p + 42, true);
+    const name = dec.decode(u8.subarray(p + 46, p + 46 + nlen));
+    p += 46 + nlen + xlen + clen;
+    if (name.endsWith('/') || /(^|\/)(__MACOSX|\._)/.test(name) || !/\.(nam|json)$/i.test(name)) continue;
+    const start = loff + 30 + dv.getUint16(loff + 26, true) + dv.getUint16(loff + 28, true), data = u8.subarray(start, start + csize);
+    let text;
+    if (method === 0) text = dec.decode(data);
+    else if (method === 8) {
+      if (typeof DecompressionStream === 'undefined') throw new Error('this browser cannot unzip; unzip it in the Files app first');
+      text = await new Response(new Blob([data]).stream().pipeThrough(new DecompressionStream('deflate-raw'))).text();
+    } else continue;
+    out.push({ name: name.split('/').pop(), text });
+  }
+  return out;
+}
+async function importFiles(files) {
+  const entries = [];
+  for (const f of files) {
+    const buf = await f.arrayBuffer(), head = new Uint8Array(buf, 0, Math.min(4, buf.byteLength));
+    if (head[0] === 0x50 && head[1] === 0x4b) {
+      try { const z = await unzip(buf); if (!z.length) toast(f.name + ' has no .nam captures inside.', true); entries.push(...z); }
+      catch (e) { toast(f.name + ': ' + e.message, true); }
+    } else entries.push({ name: f.name, text: new TextDecoder().decode(buf) });
+  }
+  let ok = 0, bad = 0, last = null, firstErr = '';
+  for (const en of entries) {
+    const r = await importNam(en.name, en.text);
+    if (r.rec) { ok++; last = r.rec; } else { bad++; firstErr = firstErr || en.name + ' would not load: ' + r.error; }
+  }
+  if (last) await useCapture(last);
+  renderCaps();
+  const msgs = [];
+  if (ok) msgs.push(ok === 1 ? 'Loaded ' + last.name + '.' : 'Loaded ' + ok + ' captures.');
+  if (bad) msgs.push(firstErr + (bad > 1 ? ' (' + bad + ' files skipped)' : ''));
+  if (msgs.length) toast(msgs.join(' '), !ok);
+}
+async function importNam(fileName, text) {
+  let json;
+  try { json = JSON.parse(text); } catch (e) { return { error: 'not a NAM capture (not valid JSON)' }; }
+  if (!json.architecture || !json.config) return { error: 'missing the parts a .nam capture has' };
+  if (!Array.isArray(json.weights)) json.weights = [];
+  try { namBuild(json.architecture, json.config, new Float32Array(json.weights), 128, { slim: 'full' }); if (namDescribe(json.architecture, json.config).container) namBuild(json.architecture, json.config, new Float32Array(json.weights), 128, { slim: 'lite' }); }
+  catch (e) { return { error: e.message }; }
+  const md = json.metadata || {};
+  const rec = { id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: md.name || fileName.replace(/\.(nam|json)$/i, ''), size: describe(json), sr: json.sample_rate || 48000,
+    arch: json.architecture, config: json.config, weights: json.weights, container: namDescribe(json.architecture, json.config).container, loudness: typeof md.loudness === 'number' ? md.loudness : null, added: Date.now() };
+  try { await DB.put('captures', rec); } catch (e) {}
+  return { rec };
+}
+async function useCapture(rec) {
+  model = { id: rec.id, name: rec.name, sr: rec.sr, arch: rec.arch, config: rec.config, weights: rec.weights, container: !!rec.container, loudness: rec.loudness };
+  S.captureId = rec.id; save();
+  showSlim();
+  selectAmp('capture');
+  if (running && ctx.sampleRate !== rec.sr) await restartAt(rec.sr); else sendModel();
+  renderCaps();
+}
+function sendModel() {
+  if (!N || !model) return;
+  const w = new Float32Array(model.weights);
+  N.rig.port.postMessage({ type: 'model', id: model.id, arch: model.arch, config: model.config, weights: w, slim: S.slim }, [w.buffer]);
+  sendParams();
+}
+async function renderCaps() {
+  let list = [];
+  try { list = await DB.all('captures'); } catch (e) {}
+  if (model && !list.find(c => c.id === model.id)) list.push(model);
+  list.sort((a, b) => (a.added || 0) - (b.added || 0));
+  const el = $('#caps');
+  if (!list.length) { el.innerHTML = '<div class="empty">No captures yet. Load a .nam file to put it on the Capture channel; it stays here for next time.</div>'; return; }
+  el.innerHTML = list.map(c => `<div class="cap${model && model.id === c.id ? ' active' : ''}" data-id="${c.id}">
+    <button class="btn" data-use="${c.id}">${model && model.id === c.id ? 'In use' : 'Use'}</button>
+    <span class="nm">${esc(c.name)}</span><span class="tag">${esc(c.size || '')}, ${Math.round((c.sr || 48000) / 100) / 10} kHz</span>
+    <button class="x" data-del="${c.id}" aria-label="Delete ${esc(c.name)}">×</button></div>`).join('');
+}
+$('#caps').addEventListener('click', async e => {
+  const u = e.target.closest('[data-use]'), d = e.target.closest('[data-del]');
+  if (u) { const rec = await DB.get('captures', u.dataset.use).catch(() => null) || (model && model.id === u.dataset.use ? model : null); if (rec) useCapture(rec); }
+  if (d) {
+    await DB.del('captures', d.dataset.del).catch(() => {});
+    if (model && model.id === d.dataset.del) { model = null; S.captureId = null; save(); if (N) N.rig.port.postMessage({ type: 'clear' }); }
+    renderCaps();
+  }
+});
+
+function showSlim() {
+  $('#slimRow').hidden = !(model && model.container);
+  $$('[data-slim]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.slim === S.slim)));
+}
+$$('[data-slim]').forEach(b => b.addEventListener('click', () => { S.slim = b.dataset.slim; save(); showSlim(); sendModel(); }));
+
+/* ---------- IRs ---------- */
+async function setIR(rec, quiet) {
+  if (!ctx) { $('#cabIr').disabled = false; $('#irRow').hidden = false; $('#irName').textContent = 'IR: ' + rec.name; return; }
+  try {
+    const buf = await ctx.decodeAudioData(rec.data.slice(0));
+    N.irConv.buffer = buf;
+    $('#cabIr').disabled = false; $('#irRow').hidden = false; $('#irName').textContent = 'IR: ' + rec.name;
+    if (!quiet) { S.irId = rec.id; selectCab('ir'); }
+  } catch (e) { toast('That IR could not be read. Use a WAV file.', true); }
+}
+async function importIR(file) {
+  const rec = { id: 'ir' + Date.now().toString(36), name: file.name.replace(/\.\w+$/, ''), data: await file.arrayBuffer() };
+  try { const old = await DB.all('irs'); for (const o of old) await DB.del('irs', o.id); await DB.put('irs', rec); } catch (e) {}
+  S.irId = rec.id; save();
+  if (ctx) await setIR(rec); else { await setIR(rec); selectCab('ir'); }
+}
+
+/* ---------- controls ---------- */
+function selectAmp(a) {
+  S.amp = a; save();
+  $$('.ch').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.amp === a)));
+  applyAmp(); applyParams();
+  if (a === 'capture' && !model) toast('Load a .nam capture below to use this channel.');
+}
+function selectCab(c) { S.cab = c; save(); $$('[data-cab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cab === c))); applyCab(); }
+function selectSrc(s) { S.src = s; save(); $$('[data-src]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === s))); $('#devRow').style.display = s === 'interface' ? '' : 'none'; connectSource(); }
+$$('.ch').forEach(b => b.addEventListener('click', () => selectAmp(b.dataset.amp)));
+$$('[data-cab]').forEach(b => b.addEventListener('click', () => selectCab(b.dataset.cab)));
+$$('[data-src]').forEach(b => b.addEventListener('click', () => { if (b.dataset.src === 'file') $('#fDi').click(); else selectSrc(b.dataset.src); }));
+$('#power').addEventListener('click', power);
+$('#loadNam').addEventListener('click', () => $('#fNam').click());
+$('#loadIr').addEventListener('click', () => $('#fIr').click());
+$('#fNam').addEventListener('change', e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length) importFiles(fs); });
+$('#fIr').addEventListener('change', e => { const f = e.target.files[0]; e.target.value = ''; if (f) importIR(f); });
+$('#fDi').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const dec = new (window.OfflineAudioContext || window.webkitOfflineAudioContext)(1, 1, 48000);
+    fileBuf = await dec.decodeAudioData(await f.arrayBuffer());
+  } catch (err) { toast('That audio file could not be read.', true); return; }
+  S.src = 'file'; save();
+  $$('[data-src]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === 'file'))); $('#devRow').style.display = 'none';
+  if (running) connectSource(); else await power();
+  toast('Looping ' + f.name);
+});
+$('#inCh').addEventListener('change', applyPick);
+$('#inDev').addEventListener('change', async () => { S.inDev = $('#inDev').value; save(); if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; } connectSource(); });
+$('#outDev').addEventListener('change', () => { S.outDev = $('#outDev').value; save(); if (ctx && ctx.setSinkId) ctx.setSinkId(S.outDev).catch(err => toast('Could not switch output: ' + err.message, true)); });
+$('#normalise').checked = S.normalise;
+$('#normalise').addEventListener('change', () => { S.normalise = $('#normalise').checked; save(); sendParams(); });
+
+/* ---------- start-up ---------- */
+(async () => {
+  if (S.src === 'file') S.src = 'interface';
+  $('#inCh').value = S.inCh;
+  $$('.ch').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.amp === S.amp)));
+  $$('[data-cab]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.cab === S.cab)));
+  $$('[data-src]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === S.src)));
+  $('#devRow').style.display = S.src === 'interface' ? '' : 'none';
+  applyParams();
+  try {
+    if (S.captureId) { const rec = await DB.get('captures', S.captureId); if (rec) { model = { id: rec.id, name: rec.name, sr: rec.sr, arch: rec.arch, config: rec.config, weights: rec.weights, container: !!rec.container, loudness: rec.loudness }; showSlim(); } }
+    if (S.irId) { const ir = await DB.get('irs', S.irId); if (ir) { $('#cabIr').disabled = false; $('#irRow').hidden = false; $('#irName').textContent = 'IR: ' + ir.name; } }
+  } catch (e) {}
+  if (S.cab === 'ir' && $('#cabIr').disabled) selectCab('4x12');
+  renderCaps();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,652 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Parp Patrol</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+:root{
+  --sky:#6EC6F2; --paper:#FFFDF5; --ink:#1B1A22;
+  --pop:#FF5E5B; --zing:#FFC93C; --mint:#46C88C;
+  --backbar:44px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{
+  background:var(--sky);
+  background-image:radial-gradient(var(--paper) 1.4px, transparent 1.5px);
+  background-size:14px 14px;
+  color:var(--ink);
+  font-family:"Chalkboard SE","Marker Felt","Comic Sans MS",system-ui,sans-serif;
+  padding-top:calc(var(--backbar) + env(safe-area-inset-top,0px));
+  -webkit-text-size-adjust:100%;
+  -webkit-tap-highlight-color:transparent;
+  overflow-x:hidden;
+}
+#appBack{position:fixed;top:0;left:0;right:0;z-index:900;
+  height:calc(var(--backbar) + env(safe-area-inset-top,0px));
+  padding:env(safe-area-inset-top,0px) 14px 0 12px;
+  display:flex;align-items:center;gap:7px;
+  background:var(--ink);color:var(--paper);
+  font:700 14px/1 "Chalkboard SE","Marker Felt",system-ui,sans-serif;text-decoration:none}
+#appBack .chev{font-size:19px;line-height:1;margin-top:-2px;color:var(--zing)}
+
+.wrap{max-width:560px;margin:0 auto;padding:10px 14px 28px}
+
+h1{margin:6px 0 2px;font-size:34px;letter-spacing:.01em;line-height:.95;
+  text-shadow:3px 3px 0 var(--paper), 6px 6px 0 var(--ink);
+  transform:rotate(-2deg);color:var(--pop)}
+h1 span{color:var(--ink);text-shadow:3px 3px 0 var(--paper), 6px 6px 0 var(--zing)}
+.tag{margin:12px 0 14px;font-size:15px;font-weight:700;transform:rotate(-1deg)}
+
+/* comic panels: thick ink border, hard drop shadow, slight tilt */
+.panel{background:var(--paper);border:4px solid var(--ink);border-radius:16px;
+  box-shadow:6px 6px 0 var(--ink);padding:12px;margin:0 0 16px}
+.panel.tilt{transform:rotate(-.7deg)}
+.panel.tilt2{transform:rotate(.6deg)}
+
+.rowlab{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  opacity:.65;margin:0 0 7px}
+
+/* chunky buttons */
+button{font-family:inherit;font-weight:700;color:var(--ink);cursor:pointer}
+.chunk{background:var(--paper);border:3px solid var(--ink);border-radius:12px;
+  box-shadow:3px 3px 0 var(--ink);padding:10px 14px;font-size:16px;
+  transition:transform .06s,box-shadow .06s}
+.chunk:active{transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.chunk.on{background:var(--zing)}
+.levels{display:flex;gap:8px;flex-wrap:wrap}
+.levels .chunk{flex:1 1 auto;min-width:88px;text-align:center;font-size:14px;padding:9px 8px;line-height:1.15}
+.levels .chunk small{display:block;font-size:11px;font-weight:700;opacity:.6}
+
+/* the stage: notation with parps living under the notes */
+#stage{position:relative;overflow:hidden;border-radius:10px}
+#vex{position:relative;z-index:2}
+#vex svg{display:block;width:100%;height:auto}
+#blobs{position:absolute;inset:0;z-index:1;pointer-events:none}
+.blob{position:absolute;transform:translate(-50%,0);transition:transform .12s}
+.blob .body{border:3px solid var(--ink);border-radius:50% 50% 46% 46%;
+  background:var(--zing);position:relative;box-shadow:2px 2px 0 var(--ink)}
+.blob .eye{position:absolute;top:25%;width:21%;height:21%;background:var(--paper);
+  border:2px solid var(--ink);border-radius:50%}
+.blob .eye.l{left:22%} .blob .eye.r{right:22%}
+.blob .eye i{position:absolute;left:22%;top:30%;width:52%;height:52%;background:var(--ink);border-radius:50%}
+.blob .mouth{position:absolute;left:38%;bottom:16%;width:24%;height:8%;
+  border:2px solid var(--ink);border-top:none;border-radius:0 0 20px 20px}
+.blob.asleep .body{background:#D9D6CC}
+.blob.asleep .eye i{display:none}
+.blob.rest .body{background:#D9D6CC;border-style:dashed}
+.blob.hit .body{background:var(--mint)}
+.blob.hit{animation:pop .34s ease-out}
+.blob.near .body{background:var(--pop)}
+.zzz{position:absolute;top:-14px;right:-6px;font-size:13px;font-weight:700;opacity:.65}
+@keyframes pop{0%{transform:translate(-50%,0) scale(1)}
+  40%{transform:translate(-50%,-10px) scale(1.28)}
+  100%{transform:translate(-50%,0) scale(1)}}
+.wobble{animation:wob 1.6s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:translate(-50%,0) rotate(-2deg)}50%{transform:translate(-50%,-2px) rotate(2deg)}}
+
+#head{position:absolute;top:0;bottom:0;width:5px;background:var(--pop);
+  border-radius:3px;z-index:3;opacity:0;pointer-events:none;box-shadow:0 0 0 2px rgba(27,26,34,.25)}
+
+/* the big tap pad */
+#pad{width:100%;border:4px solid var(--ink);border-radius:18px;background:var(--pop);
+  box-shadow:6px 6px 0 var(--ink);color:var(--paper);
+  font-size:30px;letter-spacing:.04em;padding:26px 10px;min-height:120px;
+  text-shadow:2px 2px 0 var(--ink);transition:transform .05s,box-shadow .05s}
+#pad:active,#pad.bang{transform:translate(4px,4px) scale(.99);box-shadow:0 0 0 var(--ink)}
+#pad[disabled]{background:#C9C5BA;color:#6d6a63;text-shadow:none}
+
+.go{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 14px}
+.go .chunk{flex:1 1 auto;font-size:17px;padding:13px 12px}
+.go .chunk.play{background:var(--mint)}
+.go .chunk.listen{background:#BFE7FF}
+
+#count{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  font-size:86px;color:var(--pop);text-shadow:4px 4px 0 var(--paper),8px 8px 0 var(--ink);z-index:4}
+
+#result{display:none;text-align:center}
+#stars{font-size:40px;letter-spacing:.08em}
+#verdict{font-size:20px;font-weight:700;margin:4px 0 10px}
+
+details.grown{margin-top:6px}
+details.grown summary{list-style:none;cursor:pointer;font-size:13px;font-weight:700;
+  display:inline-block;background:var(--paper);border:3px solid var(--ink);border-radius:11px;
+  box-shadow:3px 3px 0 var(--ink);padding:8px 12px}
+details.grown summary::-webkit-details-marker{display:none}
+.setrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:10px 0}
+.setrow .lab{font-size:13px;font-weight:700;min-width:104px}
+.setrow .chunk{font-size:13px;padding:7px 11px;box-shadow:2px 2px 0 var(--ink)}
+.note{font-size:12px;line-height:1.5;opacity:.75;margin:8px 0 0}
+
+:focus-visible{outline:4px solid var(--ink);outline-offset:3px}
+@media (prefers-reduced-motion:reduce){
+  .wobble,.blob.hit{animation:none}
+  .chunk,#pad{transition:none}
+}
+</style><style id="psLinkStyle">.psLink{position:fixed;right:12px;top:calc(env(safe-area-inset-top,0px) + 8px);z-index:2147483001;font:700 12px/1 system-ui,sans-serif;color:var(--skAcc,#FFD84D);text-decoration:none;border:1px solid var(--skLine,#2A3136);border-radius:999px;padding:7px 10px;background:#0C0E10;white-space:nowrap}.psLink:active{transform:translateY(1px)}</style>
+</head><body><script>
+/* Keep the screen awake whenever the app is genuinely in use, so an iPhone's
+   auto-lock cannot kill a practice session. "In use" means one of two things:
+   the app is making sound (metronome, backing, drill playback, game clicks),
+   or the microphone is live - which is the Sight Fuse case, where the student
+   reads and plays for minutes without touching the glass and the app itself
+   may be nearly silent. Self-contained so it cannot collide with app code. */
+(function () {
+  var QUIET = 4000, POLL = 1500;
+  var lastSound = 0, streams = [], lock = null, pending = false;
+  function mark() { lastSound = Date.now(); }
+  function watch(c) {
+    ["createOscillator", "createBufferSource"].forEach(function (fn) {
+      if (typeof c[fn] !== "function") return;
+      var orig = c[fn].bind(c);
+      c[fn] = function () {
+        var n = orig.apply(null, arguments);
+        if (n && typeof n.start === "function") {
+          var st = n.start.bind(n);
+          n.start = function () { mark(); return st.apply(null, arguments); };
+        }
+        return n;
+      };
+    });
+    return c;
+  }
+  var O = window.AudioContext || window.webkitAudioContext;
+  if (O) {
+    var W = function () { return watch(Reflect.construct(O, Array.prototype.slice.call(arguments))); };
+    W.prototype = O.prototype;
+    try { window.AudioContext = W; window.webkitAudioContext = W; } catch (e) {}
+  }
+  var md = navigator.mediaDevices;
+  if (md && typeof md.getUserMedia === "function") {
+    var gum = md.getUserMedia.bind(md);
+    md.getUserMedia = function () {
+      return gum.apply(null, arguments).then(function (s) { streams.push(s); return s; });
+    };
+  }
+  function micLive() {
+    for (var i = 0; i < streams.length; i++) {
+      var t = streams[i].getAudioTracks ? streams[i].getAudioTracks() : [];
+      for (var j = 0; j < t.length; j++) if (t[j].readyState === "live" && t[j].enabled) return true;
+    }
+    return false;
+  }
+  function acquire() {
+    if (lock || pending || !navigator.wakeLock || !navigator.wakeLock.request) return;
+    pending = true;
+    navigator.wakeLock.request("screen").then(function (l) {
+      pending = false; lock = l;
+      l.addEventListener("release", function () { lock = null; });
+    }).catch(function () { pending = false; });
+  }
+  function release() {
+    if (!lock) return;
+    var l = lock; lock = null;
+    try { l.release(); } catch (e) {}
+  }
+  setInterval(function () {
+    var busy = (Date.now() - lastSound < QUIET) || micLive();
+    if (busy && !document.hidden) acquire(); else release();
+  }, POLL);
+  document.addEventListener("visibilitychange", function () {
+    if (document.hidden) release();
+  });
+})();
+</script>
+<a id="appBack" href="index.html"><span class="chev">‹</span>All apps</a><a class="psLink" href="practice-schedule.html?app=parp-patrol&name=Parp%20Patrol" target="_blank" rel="noopener" title="Practice schedule for this app">Schedule</a>
+
+<div class="wrap">
+  <h1>PARP <span>PATROL</span></h1>
+  <p class="tag">Wake up every parp by tapping when it lights up. Sleeping ones stay asleep!</p>
+
+  <div class="panel tilt">
+    <p class="rowlab">Pick a patrol</p>
+    <div class="levels" id="levels"></div>
+  </div>
+
+  <div class="panel tilt2">
+    <div id="stage">
+      <div id="blobs"></div>
+      <div id="vex"></div>
+      <div id="head"></div>
+      <div id="count"></div>
+    </div>
+  </div>
+
+  <div class="go">
+    <button class="chunk listen" id="btnListen">👂 Show me</button>
+    <button class="chunk play" id="btnPlay">🎵 My turn</button>
+    <button class="chunk" id="btnNew">🎲 New one</button>
+  </div>
+
+  <button id="pad" disabled>TAP!</button>
+
+  <div class="panel tilt" id="result">
+    <div id="stars"></div>
+    <div id="verdict"></div>
+    <button class="chunk play" id="btnAgain">Go again</button>
+  </div>
+
+  <details class="grown">
+    <summary>⚙︎ Grown-ups</summary>
+    <div class="panel" style="margin-top:10px">
+      <div class="setrow"><span class="lab">Noises</span>
+        <button class="chunk" data-snd="parp">Parps</button>
+        <button class="chunk" data-snd="boing">Boings</button>
+        <button class="chunk" data-snd="beep">Gentle beeps</button>
+      </div>
+      <div class="setrow"><span class="lab">Speed</span>
+        <button class="chunk" data-bpm="50">Very slow</button>
+        <button class="chunk" data-bpm="66">Slow</button>
+        <button class="chunk" data-bpm="84">Medium</button>
+      </div>
+      <div class="setrow"><span class="lab">Tap window</span>
+        <button class="chunk" data-win="easy">Very forgiving</button>
+        <button class="chunk" data-win="normal">Normal</button>
+      </div>
+      <div class="setrow"><span class="lab">Counts</span>
+        <button class="chunk" data-counts="1">Show 1 2 3 4</button>
+        <button class="chunk" data-counts="0">Hide</button>
+      </div>
+      <div class="setrow"><span class="lab">Timing</span>
+        <button class="chunk" id="btnCal">Reset timing help</button>
+        <span id="calNow" style="font-size:12px;font-weight:700;opacity:.7"></span>
+      </div>
+      <div class="setrow"><span class="lab">Wobble</span>
+        <button class="chunk" data-motion="1">On</button>
+        <button class="chunk" data-motion="0">Still</button>
+      </div>
+      <p class="note">Real notation throughout — the blob size is the note length, so a big slow blob really is a longer note. Nothing is ever wrong here: missed parps just stay asleep, and there are no lives to lose.</p>
+    </div>
+  </details>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/vexflow/3.0.9/vexflow-min.js"></script>
+<script>
+/* ---------------- settings ---------------- */
+var S={snd:"parp",bpm:66,win:"easy",counts:1,motion:1,level:1,cal:0};
+try{var raw=localStorage.getItem("parp:settings");if(raw)S=Object.assign(S,JSON.parse(raw));}catch(e){}
+function save(){try{localStorage.setItem("parp:settings",JSON.stringify(S));}catch(e){}}
+
+/* ---------------- sound ---------------- */
+var ctx=null,bus=null,unlocked=false;
+function audio(){
+  if(!ctx){
+    ctx=new (window.AudioContext||window.webkitAudioContext)();
+    bus=ctx.createGain();bus.gain.value=.85;bus.connect(ctx.destination);
+  }
+  if(ctx.state!=="running")ctx.resume().catch(function(){});
+  return ctx;
+}
+function unlock(){
+  var c=audio();
+  try{var b=c.createBuffer(1,1,c.sampleRate),s=c.createBufferSource();
+      s.buffer=b;s.connect(c.destination);s.start(0);}catch(e){}
+  if(c.state!=="running")c.resume().catch(function(){});
+  unlocked=c.state==="running";
+}
+["pointerdown","touchend","mousedown","click","keydown"].forEach(function(ev){
+  document.addEventListener(ev,function k(){unlock();
+    if(unlocked)["pointerdown","touchend","mousedown","click","keydown"].forEach(function(e2){
+      document.removeEventListener(e2,k,true);});},true);
+});
+document.addEventListener("visibilitychange",function(){
+  if(!document.hidden&&ctx&&ctx.state!=="running")ctx.resume().catch(function(){});
+});
+
+/* A parp is a sawtooth with the pitch falling away, a flutter on top and the
+   filter closing - longer notes get longer, lazier parps, so the joke and the
+   note value are the same thing. */
+function parp(t,dur,pitch){
+  var c=audio();dur=Math.max(.18,Math.min(2.2,dur));
+  if(S.snd==="beep"){
+    var o1=c.createOscillator();o1.type="triangle";o1.frequency.value=pitch*4;
+    var g1=c.createGain();g1.gain.setValueAtTime(.0001,t);
+    g1.gain.exponentialRampToValueAtTime(.32,t+.02);
+    g1.gain.exponentialRampToValueAtTime(.0001,t+Math.min(dur,.55));
+    o1.connect(g1);g1.connect(bus);o1.start(t);o1.stop(t+dur+.05);return;
+  }
+  if(S.snd==="boing"){
+    var o2=c.createOscillator();o2.type="sine";
+    o2.frequency.setValueAtTime(pitch*7,t);
+    o2.frequency.exponentialRampToValueAtTime(pitch*2.2,t+dur*.75);
+    var g2=c.createGain();g2.gain.setValueAtTime(.0001,t);
+    g2.gain.exponentialRampToValueAtTime(.36,t+.02);
+    g2.gain.exponentialRampToValueAtTime(.0001,t+dur);
+    o2.connect(g2);g2.connect(bus);o2.start(t);o2.stop(t+dur+.05);return;
+  }
+  var base=pitch;
+  var o=c.createOscillator();o.type="sawtooth";
+  o.frequency.setValueAtTime(base*1.7,t);
+  o.frequency.exponentialRampToValueAtTime(base*.55,t+dur*.92);
+  var lfo=c.createOscillator();lfo.type="square";
+  lfo.frequency.setValueAtTime(15+Math.random()*16,t);
+  lfo.frequency.linearRampToValueAtTime(7+Math.random()*8,t+dur);
+  var lg=c.createGain();lg.gain.value=base*.42;
+  lfo.connect(lg);lg.connect(o.frequency);
+  var lp=c.createBiquadFilter();lp.type="lowpass";lp.Q.value=7;
+  lp.frequency.setValueAtTime(1500,t);
+  lp.frequency.exponentialRampToValueAtTime(240,t+dur);
+  var g=c.createGain();g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.5,t+.025);
+  g.gain.exponentialRampToValueAtTime(.28,t+dur*.6);
+  g.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(lp);lp.connect(g);g.connect(bus);
+  o.start(t);o.stop(t+dur+.06);lfo.start(t);lfo.stop(t+dur+.06);
+}
+function pfft(){ /* a gentle "not quite" - never a buzzer */
+  var c=audio(),t=c.currentTime;
+  var o=c.createOscillator();o.type="sine";
+  o.frequency.setValueAtTime(220,t);o.frequency.exponentialRampToValueAtTime(120,t+.16);
+  var g=c.createGain();g.gain.setValueAtTime(.0001,t);
+  g.gain.exponentialRampToValueAtTime(.13,t+.02);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.18);
+  o.connect(g);g.connect(bus);o.start(t);o.stop(t+.22);
+}
+function click(t,strong){
+  var c=audio();
+  var o=c.createOscillator();o.type="square";
+  o.frequency.setValueAtTime(strong?1500:1000,t);
+  var g=c.createGain();g.gain.setValueAtTime(strong?.16:.09,t);
+  g.gain.exponentialRampToValueAtTime(.0001,t+.05);
+  o.connect(g);g.connect(bus);o.start(t);o.stop(t+.07);
+}
+
+/* ---------------- the rhythm ladder ---------------- */
+/* every item: beats it lasts, and the notes inside it */
+var ITEMS={
+  q:   {beats:1,notes:[{d:"q",b:1}]},
+  h:   {beats:2,notes:[{d:"h",b:2}]},
+  w:   {beats:4,notes:[{d:"w",b:4}]},
+  qr:  {beats:1,notes:[{d:"qr",b:1,rest:true}]},
+  hr:  {beats:2,notes:[{d:"hr",b:2,rest:true}]},
+  e2:  {beats:1,notes:[{d:"8",b:.5},{d:"8",b:.5}],beam:true},
+  dot: {beats:2,notes:[{d:"q",b:1.5,dot:true},{d:"8",b:.5}]},
+  s4:  {beats:1,notes:[{d:"16",b:.25},{d:"16",b:.25},{d:"16",b:.25},{d:"16",b:.25}],beam:true}
+};
+var LEVELS=[
+  {n:"Patrol 1",sub:"steady steps",pool:["q","q","q","h"]},
+  {n:"Patrol 2",sub:"long and short",pool:["q","h","h","w"]},
+  {n:"Patrol 3",sub:"sleepy rests",pool:["q","q","h","qr","qr","hr"]},
+  {n:"Patrol 4",sub:"skippy pairs",pool:["q","q","e2","e2","h","qr"]},
+  {n:"Patrol 5",sub:"dotty ones",pool:["q","e2","dot","dot","h","qr"]},
+  {n:"Patrol 6",sub:"speedy tiddlers",pool:["q","e2","s4","s4","dot","qr"]}
+];
+/* swapping a leading rest for silence of a different length would break the bar */
+var SOUND_SWAP={qr:"q",hr:"h"};
+function makeBar(levelIdx){
+  var pool=LEVELS[levelIdx].pool,left=4,items=[],guard=0;
+  while(left>0&&guard++<60){
+    var pick=pool[Math.floor(Math.random()*pool.length)];
+    if(ITEMS[pick].beats<=left){items.push(pick);left-=ITEMS[pick].beats;}
+  }
+  if(left>0)while(left-->0)items.push("q");
+  /* never open on a rest - a bar that starts with silence is confusing */
+  if(ITEMS[items[0]].notes[0].rest){
+    var j=-1;for(var i=1;i<items.length;i++)if(!ITEMS[items[i]].notes[0].rest){j=i;break;}
+    if(j>0){var t=items[0];items[0]=items[j];items[j]=t;}
+    else items[0]=SOUND_SWAP[items[0]]||"q";  /* same length, just awake */
+  }
+  var seq=[],at=0;
+  items.forEach(function(id){
+    ITEMS[id].notes.forEach(function(nt){
+      seq.push({d:nt.d,at:at,beats:nt.b,rest:!!nt.rest,dot:!!nt.dot,item:id});
+      at+=nt.b;
+    });
+  });
+  return {items:items,seq:seq};
+}
+
+/* ---------------- notation + parps ---------------- */
+var VF=(window.Vex&&window.Vex.Flow)||null;
+var bar=null,noteXs=[];
+function draw(){
+  var host=document.getElementById("vex");host.innerHTML="";
+  document.getElementById("blobs").innerHTML="";
+  if(!VF){host.innerHTML='<p style="padding:14px;font-weight:700">The music drawing kit didn\'t load. Connect to the internet once and it will work offline after that.</p>';return;}
+  var W=host.clientWidth||320,H=150;
+  var r=new VF.Renderer(host,VF.Renderer.Backends.SVG);
+  r.resize(W,H);
+  var c=r.getContext();
+  /* percussion clef on a normal stave - exactly how Sight Fuse draws its
+     rhythm ladder, so the child sees the same notation as in the exam. */
+  var stave=new VF.Stave(4,18,W-10);
+  stave.addClef("percussion");
+  stave.addTimeSignature("4/4");
+  stave.setContext(c).draw();
+
+  var notes=[],beams=[],group=[],lastItem=null;
+  bar.seq.forEach(function(s){
+    var sn=new VF.StaveNote({clef:"percussion",keys:["b/4"],duration:s.d});
+    if(s.dot){try{sn.addDotToAll();}catch(e){try{sn.addModifier(new VF.Dot(),0);}catch(e2){}}}
+    s.vf=sn;notes.push(sn);
+  });
+  /* beam the quaver and semiquaver groups only */
+  var idx=0;
+  bar.items.forEach(function(id){
+    var count=ITEMS[id].notes.length;
+    if(ITEMS[id].beam&&count>1){
+      var sub=notes.slice(idx,idx+count);
+      try{beams.push(new VF.Beam(sub));}catch(e){}
+    }
+    idx+=count;
+  });
+  VF.Formatter.FormatAndDraw(c,stave,notes,{auto_beam:false});
+  beams.forEach(function(b){try{b.setContext(c).draw();}catch(e){}});
+
+  /* place a parp under each note, sized by how long it lasts */
+  noteXs=[];
+  var holder=document.getElementById("blobs");
+  bar.seq.forEach(function(s,i){
+    var x=4;try{x=s.vf.getAbsoluteX();}catch(e){x=20+i*30;}
+    noteXs.push(x);
+    var px=Math.max(20,Math.min(52,20+s.beats*12));
+    var el=document.createElement("div");
+    el.className="blob"+(s.rest?" rest":" asleep")+(S.motion&&!s.rest?" wobble":"");
+    el.style.left=(x/W*100)+"%";
+    el.style.top=(H-px-30)+"px";
+    el.innerHTML='<div class="body" style="width:'+px+'px;height:'+px+'px">'+
+      '<div class="eye l"><i></i></div><div class="eye r"><i></i></div><div class="mouth"></div></div>'+
+      (s.rest?'<div class="zzz">z z</div>':'');
+    if(S.counts){
+      var lab=document.createElement("div");
+      lab.style.cssText="text-align:center;font-size:12px;font-weight:700;opacity:.7;margin-top:2px";
+      lab.textContent=(s.at%1===0)?String(s.at+1):"+";
+      el.appendChild(lab);
+    }
+    holder.appendChild(el);
+    s.el=el;
+  });
+  document.getElementById("head").style.left=(noteXs[0]||10)+"px";
+}
+
+/* ---------------- play ---------------- */
+var mode=null,t0=0,raf=0,hits=0,total=0,offs=[];
+/* Safari does not report output latency, and every device and pair of
+   headphones differs. Rather than guess, learn it: the average lateness of the
+   taps that landed becomes the offset for the next bar. Clamped, so one wild
+   bar can never send it somewhere daft. */
+function calib(){return Math.max(-.25,Math.min(.25,S.cal||0));}
+function beatSec(){return 60/S.bpm;}
+/* The clicks are scheduled on the audio clock but reach the ear later - about
+   100-200ms on iOS, more over Bluetooth. A child taps to what they HEAR, so
+   every tap read late, and beat 1 is the one with no earlier note to calibrate
+   against. Shift the bar's zero by the output latency to match. */
+function outLag(){
+  var c=audio();
+  var l=(typeof c.outputLatency==="number"&&c.outputLatency)||c.baseLatency||0;
+  return Math.min(.35,l);
+}
+function stopAll(){cancelAnimationFrame(raf);mode=null;t0=0;
+  document.getElementById("head").style.opacity=0;
+  document.getElementById("pad").disabled=true;}
+
+function runHead(startT,dur){
+  var host=document.getElementById("vex"),W=host.clientWidth||320;
+  var head=document.getElementById("head");head.style.opacity=1;
+  var x0=noteXs[0]||10,x1=W-12;
+  (function step(){
+    var e=audio().currentTime-startT,p=Math.max(0,Math.min(1,e/dur));
+    head.style.left=(x0+(x1-x0)*p)+"px";
+    if(p<1&&mode)raf=requestAnimationFrame(step);else head.style.opacity=0;
+  })();
+}
+
+function countIn(then){
+  var c=audio(),t=c.currentTime+.15,el=document.getElementById("count");
+  el.style.display="flex";
+  for(var i=0;i<4;i++){
+    click(t+i*beatSec(),i===0);
+    (function(n){setTimeout(function(){el.textContent=String(n+1);},i*beatSec()*1000+120);})(i);
+  }
+  /* The downbeat is known the instant we schedule the clicks, so return it
+     straight away. Waiting for a timer to hand it over left a dead window
+     sitting exactly on beat 1 where taps were discarded. */
+  var downbeat=t+4*beatSec();
+  setTimeout(function(){el.style.display="none";if(then)then();},
+    Math.max(0,(downbeat-c.currentTime)*1000));
+  return downbeat;
+}
+
+function demo(){
+  stopAll();resetBlobs();document.getElementById("result").style.display="none";
+  mode="demo";
+  var start=countIn(null);
+  t0=start+outLag();
+  bar.seq.forEach(function(s){
+    if(s.rest)return;
+    var t=start+s.at*beatSec(),dur=s.beats*beatSec()*.92;
+    parp(t,dur,90+Math.random()*40);
+    /* flash when the parp is heard, not when it was scheduled */
+    setTimeout(function(){if(mode==="demo")flash(s);},(t+outLag()-audio().currentTime)*1000);
+  });
+  runHead(t0,4*beatSec());
+  setTimeout(function(){if(mode==="demo"){stopAll();}},
+    Math.max(600,(t0+4*beatSec()+.4-audio().currentTime)*1000));
+}
+
+function flash(s){
+  s.el.classList.remove("asleep");s.el.classList.add("hit");
+  setTimeout(function(){s.el.classList.remove("hit");},340);
+}
+function resetBlobs(){
+  bar.seq.forEach(function(s){
+    s.done=false;
+    s.el.className="blob"+(s.rest?" rest":" asleep")+(S.motion&&!s.rest?" wobble":"");
+  });
+}
+
+function play(){
+  stopAll();resetBlobs();document.getElementById("result").style.display="none";
+  mode="play";hits=0;offs=[];total=bar.seq.filter(function(s){return !s.rest;}).length;
+  /* live from the very start, and the beat is known from the very start, so a
+     tap can never land in a gap where nothing is listening */
+  document.getElementById("pad").disabled=false;
+  t0=countIn(null)+outLag();
+  runHead(t0,4*beatSec());
+  setTimeout(function(){if(mode==="play")finish();},
+    Math.max(400,(t0+4*beatSec()+.6-audio().currentTime)*1000));
+}
+
+function tap(){
+  if(mode!=="play")return;
+  var pad=document.getElementById("pad");
+  pad.classList.add("bang");setTimeout(function(){pad.classList.remove("bang");},90);
+  var beat=beatSec(),now=audio().currentTime-t0-calib();
+  var early=(S.win==="easy"?.38:.24)*Math.max(1,beat/.9);
+  /* output latency is never negative - it only ever makes a tap read late, and
+     Safari does not report it, so leave extra room on that side */
+  var late=early+.18;
+  if(now< -early)return;              /* tapping along with the count-in is free */
+  /* nearest note wins, which is the midpoint rule; rests are candidates too, so
+     tapping a sleeping parp is a miss instead of stealing a real note */
+  var best=null,bd=1e9,sd=0;
+  bar.seq.forEach(function(s){
+    var d=now-s.at*beat;
+    if(Math.abs(d)<bd){bd=Math.abs(d);sd=d;best=s;}
+  });
+  if(!best)return;
+  if(!best.rest&&!best.done&&sd>=-early&&sd<=late){
+    best.done=true;hits++;offs.push(sd);
+    best.el.classList.remove("asleep","wobble");best.el.classList.add("hit");
+    parp(audio().currentTime,Math.max(.2,best.beats*beat*.85),95+Math.random()*40);
+  }else{
+    pfft();
+    best.el.classList.add("near");
+    setTimeout(function(){best.el.classList.remove("near");},260);
+  }
+}
+
+function finish(){
+  stopAll();
+  if(offs.length>=2){
+    var m=offs.reduce(function(a,b){return a+b;},0)/offs.length;
+    S.cal=Math.max(-.25,Math.min(.25,(S.cal||0)*.6+m*.4));
+    save();
+  }
+  var res=document.getElementById("result"),st=document.getElementById("stars"),vd=document.getElementById("verdict");
+  var n=total?hits/total:0;
+  var stars=n>=.99?3:n>=.66?2:n>0?1:0;
+  st.textContent="⭐️".repeat(stars)+"☆".repeat(3-stars);
+  vd.textContent=hits+" of "+total+" parps woke up"+(stars===3?" — every single one!":stars===2?" — nearly there!":stars===1?" — good start!":" — have another go!");
+  res.style.display="block";showCal();
+  bar.seq.forEach(function(s){if(!s.rest&&!s.done)s.el.classList.add("asleep");});
+}
+
+/* ---------------- wiring ---------------- */
+function buildLevels(){
+  var box=document.getElementById("levels");box.innerHTML="";
+  LEVELS.forEach(function(L,i){
+    var b=document.createElement("button");
+    b.className="chunk"+(i===S.level-1?" on":"");
+    b.innerHTML=L.n+"<small>"+L.sub+"</small>";
+    b.onclick=function(){S.level=i+1;save();buildLevels();newBar();};
+    box.appendChild(b);
+  });
+}
+function newBar(){stopAll();bar=makeBar(S.level-1);draw();
+  document.getElementById("result").style.display="none";}
+
+function syncSettings(){
+  document.querySelectorAll("[data-snd]").forEach(function(b){b.classList.toggle("on",b.dataset.snd===S.snd);});
+  document.querySelectorAll("[data-bpm]").forEach(function(b){b.classList.toggle("on",+b.dataset.bpm===S.bpm);});
+  document.querySelectorAll("[data-win]").forEach(function(b){b.classList.toggle("on",b.dataset.win===S.win);});
+  document.querySelectorAll("[data-counts]").forEach(function(b){b.classList.toggle("on",+b.dataset.counts===S.counts);});
+  document.querySelectorAll("[data-motion]").forEach(function(b){b.classList.toggle("on",+b.dataset.motion===S.motion);});
+}
+["snd","bpm","win","counts","motion"].forEach(function(key){
+  document.querySelectorAll("[data-"+key+"]").forEach(function(b){
+    b.onclick=function(){
+      var v=b.dataset[key];
+      S[key]=(key==="bpm"||key==="counts"||key==="motion")?+v:v;
+      save();syncSettings();
+      if(key==="counts"||key==="motion")draw();
+    };
+  });
+});
+
+function showCal(){
+  var e=document.getElementById("calNow");if(!e)return;
+  var ms=Math.round((S.cal||0)*1000);
+  e.textContent=ms?(ms>0?"+"+ms:ms)+" ms learned":"not needed yet";
+}
+document.getElementById("btnCal").onclick=function(){S.cal=0;save();showCal();};
+document.getElementById("btnListen").onclick=demo;
+document.getElementById("btnPlay").onclick=play;
+document.getElementById("btnNew").onclick=newBar;
+document.getElementById("btnAgain").onclick=play;
+var pad=document.getElementById("pad");
+pad.addEventListener("pointerdown",function(e){e.preventDefault();tap();});
+document.addEventListener("keydown",function(e){
+  if(e.code==="Space"){e.preventDefault();tap();}
+});
+window.addEventListener("resize",function(){if(bar)draw();});
+
+buildLevels();syncSettings();showCal();newBar();
+
+if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"||location.hostname==="127.0.0.1")){
+  addEventListener("load",function(){navigator.serviceWorker.register("./sw.js");});
+}
+</script>
+</body></html>

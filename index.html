@@ -1,0 +1,147 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Anthos Music Suite</title><style>
+body{margin:0;background:#101315;color:#EEF0F2;font-family:'Avenir Next','Segoe UI',system-ui,-apple-system,sans-serif;padding:24px 16px 40px;-webkit-tap-highlight-color:transparent}
+h1{font-size:26px;letter-spacing:-.02em;margin:0 0 4px;color:#FFD84D;display:inline-block}
+h2{font-size:12px;letter-spacing:.14em;color:var(--c);margin:22px 0 8px;text-transform:uppercase;font-weight:700}
+section a{display:block;background:#171B1E;border:1px solid #2A3136;border-left:3px solid var(--c);border-radius:12px;padding:12px 14px;margin:6px 0;color:#EEF0F2;text-decoration:none;font-size:15px;font-weight:600}
+section a:active{background:#1D2226;border-color:var(--c)}
+.badge{display:block;border-radius:12px;padding:11px 14px;margin:14px 0 4px;font-size:13px;line-height:1.45;border:1px solid #2A3136;background:#171B1E;color:#8E98A3}
+.badge.busy{background:#231D10;border-color:#7A6320;color:#FFD866}
+.badge.ok{background:#12210F;border-color:#3D6B2E;color:#A8E08A}
+.badge.bad{background:#241012;border-color:#7A2A2E;color:#FFA8AC}
+@media (min-width:700px){body{max-width:640px;margin:0 auto}}</style><link rel="manifest" href="./manifest.json"><link rel="apple-touch-icon" href="./apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style id="anthosSkin">
+:root{--skPanel:#171B1E;--skPanel2:#1D2226;--skLine:#2A3136;--skInk:#EEF0F2;--skMut:#8E98A3;--skAcc:#FFD84D;--skAccL:#FFE37F;--skAccD:#C7A83C;--skOn:#15130E}
+button.btn,button.go,button.ghost,button.chip,button.primary,button.play,button.subbtn,button.switch-btn,button.lvlchip,button.bigbtn,button.opt,button.nav,button.reveal,button.seg-btn,button.again,button.mix,button.rndbtn,button.deg,button.flashcard,.scoperow button,.seg button,.panel .primary,.panel .ghost{border-radius:11px!important;font-weight:700!important;-webkit-tap-highlight-color:transparent;transition:transform .05s,border-color .12s,color .12s;font-family:inherit}
+button.chip{border-radius:9px!important}
+button.seg-btn,.scoperow button,.seg button{border-radius:8px!important}
+.seg{border-radius:10px!important;overflow:hidden}
+button.btn:active,button.go:active,button.ghost:active,button.chip:active,button.primary:active,button.play:active,button.subbtn:active,button.switch-btn:active,button.lvlchip:active,button.bigbtn:active,button.opt:active,button.nav:active,button.reveal:active,button.seg-btn:active,button.again:active,button.mix:active,button.rndbtn:active,button.deg:active,button.flashcard:active,.scoperow button:active,.seg button:active,.panel .primary:active,.panel .ghost:active{transform:translateY(1px)}
+button.go:not(.alt),button.btn.primary,button.primary,button.play,button.bigbtn,button.switch-btn.on,.panel .primary{background:linear-gradient(180deg,#FFE37F,#C7A83C)!important;border:1px solid #FFD84D!important;color:#15130E!important;box-shadow:0 1px 0 rgba(0,0,0,.35);text-shadow:none!important}
+button.go:not(.alt):disabled,button.btn.primary:disabled,button.primary:disabled,button.play:disabled,button.bigbtn:disabled,button.switch-btn.on:disabled,.panel .primary:disabled{opacity:.4!important}
+button.reveal{border:1px solid var(--skLine)!important;background:var(--skPanel2)!important;color:var(--skAcc)!important}
+button.go.alt,button.ghost,.panel .ghost{background:var(--skPanel2)!important;border:1px solid var(--skLine)!important;color:var(--skInk)!important}
+button.go.alt.on,button.go.alt:active,button.ghost:active{border-color:var(--skAcc)!important;color:var(--skAcc)!important}
+#appBack .chev{color:#FFD84D!important}
+</style>
+</head><body>
+<h1>Anthos Music Suite</h1>
+<div class="badge" id="offlineBadge">Checking offline status…</div>
+<section style="--c:#FF9F40"><h2>Practice rooms</h2>
+<a href="anthos-grade1-guitar.html">Grade 1 practice room</a>
+<a href="anthos-grade2-guitar.html">Grade 2 practice room</a>
+<a href="anthos-grade3-guitar.html">Grade 3 practice room</a>
+<a href="anthos-grade4-guitar.html">Grade 4 practice room</a>
+<a href="anthos-grade5-guitar.html">Grade 5 practice room</a>
+<a href="anthos-grade6-guitar.html">Grade 6 practice room</a>
+<a href="anthos-grade7-guitar.html">Grade 7 practice room</a>
+<a href="anthos-grade8-guitar.html">Grade 8 practice room</a>
+<a href="tab-player.html">Shred Master Sight Reading — load a MIDI, read the tab as it scrolls with an engraved score, tempo, loop locators, levels 1–3, sounds, mic marking</a>
+<a href="scale-trainer.html">Scale Trainer — guitar, bass, ukulele or keyboard: every scale as the practice rooms show it (positions, 3-per-string or box, whole neck; two hands with fingering on keys) with a groove and chords that fit, record your own vamp, shapes, grips, pianist voicings and arpeggios, and any time signature with one-bar metre changes — the groove is re-laid into whatever you pick</a>
+<a href="chord-trainer.html">Chord Trainer — open chords for guitar (7ths, sus2, sus4, add9, 6ths, 9ths, slash) and a jazz ladder from guide tones through drop 2, drop 3, drop 2 &amp; 4, rootless, quartal and upper structures to reharmonising; chord scales on every chord, play-along in any time signature, keyboard and bass too, import a MIDI or a chord chart, export as PDF, the World Beats groove catalogue (74 regions, 191 grooves in their own metres) and a MIDI keyboard input that names the chord you play</a>
+</section>
+<section style="--c:#FFD84D"><h2>Ear training</h2>
+<a href="anthos-ear-training-grade1.html">Grade 1 ear training</a>
+<a href="anthos-ear-training-grade2.html">Grade 2 ear training</a>
+<a href="anthos-ear-training-grade3.html">Grade 3 ear training</a>
+<a href="anthos-ear-training-grade4.html">Grade 4 ear training</a>
+<a href="anthos-ear-training-grade5.html">Grade 5 ear training</a>
+<a href="anthos-ear-training-grade6.html">Grade 6 ear training</a>
+<a href="anthos-ear-training-grade7.html">Grade 7 ear training</a>
+<a href="anthos-ear-training-grade8.html">Grade 8 ear training</a>
+<a href="inner-ear.html">Inner Ear — hearing inside chords: voices, tensions, voicings, changes, lines</a>
+</section>
+<section style="--c:#FF6FA5"><h2>Vocals</h2>
+<a href="anthos-vocals.html">Anthos Vocals — graded sight singing with a pitch meter, score &amp; grid, Playback Fuse</a>
+</section>
+<section style="--c:#5BC8F5"><h2>Piano</h2>
+<a href="cascade-piano.html">Cascade — falling-notes piano practice (MIDI &amp; MusicXML)</a>
+<a href="keys-room.html">Keys Room — Anthos keyboards ladder Initial to Grade 8: chords and voicings, scales with fingering, arpeggios, improvising backing tracks in the graded styles, playback tests, exam notes; at Grade 8 the full scale ladder, altered chords and a Voicings tab of jazz and gospel shapes with demos</a>
+</section>
+<section style="--c:#FF4B4B"><h2>Drums</h2>
+<a href="anthos-drums.html">Anthos Drums — graded grooves, fills, rudiments &amp; Playback Fuse</a>
+</section>
+<section style="--c:#4CE07A"><h2>Rhythm</h2>
+<a href="tab-player-drums.html">Shred Master Sight Reading — Drums: the drum track of any MIDI as scrolling two-voice drum notation, levels 1–3, mic marking by hits</a>
+<a href="launchpad.html">Launchpad — phone as sample pads: 9 kits, bass, notes and chords in 11 scales, 10 synths each, looper, arp, effects, MIDI out, play together</a>
+<a href="world-beats.html">World Beats — spin the globe to 74 regions and 191 grooves, each with its own scale, key and harmony: MASH randomiser, Warp, Learn mode, engraved score, WAV and MIDI export, Jam keys, and MASH-1 inside on Jam+</a>
+<a href="mash-1.html">MASH-1 — the pocket synth: six voices, a scope you play like a pad, Chaos surface, and one big Mash button</a>
+<a href="beat-trainer-world.html">BeatTrainer World — drum trainer, score &amp; world rhythms</a>
+<a href="rhythm-reading.html">Rhythm Reading — 100 studies</a>
+<a href="short-fuse.html">Short Fuse</a>
+<a href="parp-patrol.html">Parp Patrol — rhythm reading for younger &amp; SEN players</a>
+</section>
+<section style="--c:#B06BFF"><h2>Reading & games</h2>
+<a href="interval-fuse.html">Interval Fuse</a>
+<a href="sight-fuse.html">Sight Fuse — sight reading</a>
+</section>
+<section style="--c:#3FD4C4"><h2>Bass practice rooms</h2>
+<a href="anthos-grade1-bass.html">Grade 1 bass</a>
+<a href="anthos-grade2-bass.html">Grade 2 bass</a>
+<a href="anthos-grade3-bass.html">Grade 3 bass</a>
+<a href="anthos-grade4-bass.html">Grade 4 bass</a>
+<a href="anthos-grade5-bass.html">Grade 5 bass</a>
+<a href="anthos-grade6-bass.html">Grade 6 bass</a>
+<a href="anthos-grade7-bass.html">Grade 7 bass</a>
+<a href="anthos-grade8-bass.html">Grade 8 bass</a>
+<a href="tab-player-bass.html">Shred Master Sight Reading — Bass: MIDI into bass tab and bass clef, 4 or 5 strings, auto-transposed into register</a>
+</section>
+<section style="--c:#FF7F6E"><h2>Ukulele</h2>
+<a href="ukulele-room.html">Ukulele Room — the Anthos ladder Debut to Grade 8: scales and arpeggios on the re-entrant neck (position, one string, campanella), chord shapes, strumming grooves, exam notes, metronome</a>
+<a href="tab-player-ukulele.html">Shred Master Sight Reading — Ukulele: MIDI into ukulele tab and treble score, auto-transposed to the uke</a>
+</section>
+<section style="--c:#FF6FA5"><h2>Classroom</h2>
+<a href="ks3-baseline.html">Year 7 Music Baseline — KS3 mark sheet, three assessment points, student self-tests, CSV export</a>
+</section>
+<section style="--c:#B8E64C"><h2>Tools</h2>
+<a href="practice-schedule.html" target="_blank" rel="noopener">Practice schedule — a plain notebook per app and per student, kept on this device</a>
+<a href="tuner.html">Tuner — guitar &amp; bass</a>
+<a href="unravel.html">Unravel — stem splitter: pull a track apart into vocals, drums, bass and the rest</a>
+<a href="filament.html">Filament — partial trajectory analyser: watch a sound&rsquo;s partials move and turn what it hears into MIDI</a>
+<a href="loom.html">Loom — loop sequencer: drag audio in, time-stretch it, quantise it and build a arrangement</a>
+<a href="punch-drums.html">Punch — drum synth: hard, tunable drums with a wreck strip, built after World Beats&rsquo; kit felt too soft</a>
+<a href="anthos-amp.html">Anthos Amp — guitar amp simulator with built-in models and a Neural Amp Modeler capture loader</a>
+<a href="woodshed.html">Woodshed — slow a track down without changing its pitch, shift the pitch without changing the speed, and loop the bar you cannot play yet</a>
+<a href="changes.html">Changes — chord transcriber: play a track and read the chords back as a chart you can play along with</a>
+</section>
+<script>if('serviceWorker' in navigator&&(location.protocol==='https:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')){addEventListener('load',function(){navigator.serviceWorker.register('./sw.js')})}</script><script>
+(function(){
+  var t0=Date.now(), NEED=81, el=document.getElementById('offlineBadge');
+  if(!el) return;
+  function set(cls,txt){ el.className='badge '+cls; el.textContent=txt; }
+  function localHost(){ return location.hostname==='localhost'||location.hostname==='127.0.0.1'; }
+  async function poll(){
+    if(!('serviceWorker' in navigator)||!('caches' in window)){
+      set('bad','Offline storage is not available in this browser.'); return; }
+    if(location.protocol!=='https:'&&!localHost()){
+      set('bad','Offline needs the https:// web address — it cannot work from a file opened directly.'); return; }
+    var n=0;
+    try{
+      var names=await caches.keys();
+      for(var i=0;i<names.length;i++){
+        if(names[i].indexOf('anthos-')!==0) continue;
+        var c=await caches.open(names[i]);
+        var keys=await c.keys();
+        var local=keys.filter(function(r){ return r.url.indexOf(location.origin)===0; }).length;
+        if(local>n) n=local;
+      }
+    }catch(e){ set('bad','Could not read offline storage on this device.'); return; }
+    var ctl=!!navigator.serviceWorker.controller;
+    if(n>=NEED&&ctl){
+      set('ok','\u2713 Offline ready \u2014 all '+NEED+' pages saved on this device. Safe to go into Airplane Mode.');
+    } else if(n>=NEED&&!ctl){
+      set('busy','Files saved \u2014 pull down to reload this page once to switch offline mode on.');
+    } else if(Date.now()-t0>30000&&n===0){
+      set('bad','Offline saving has not started. Reload the page, check you are on the main https:// address, and make sure this is not a Private tab.');
+      return;
+    } else if(Date.now()-t0>60000){
+      set('bad','Offline save stalled at '+n+' of '+NEED+'. Reload the page while online to finish it.');
+      return;
+    } else {
+      set('busy','Saving for offline\u2026 '+n+' of '+NEED+' pages. Stay online and keep this page open.');
+    }
+    setTimeout(poll,800);
+  }
+  poll();
+})();
+</script></body></html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#F6F1E7">
+<meta name="robots" content="noindex,nofollow">
+<title>Practice schedule</title>
+<link rel="manifest" href="./manifest.json">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<style>
+:root{--paper:#F6F1E7;--paper2:#FFFDF8;--ink:#1E1B16;--mut:#7A6F60;--line:#DDD3C2;--acc:#C8871E;--accD:#9E6710;--good:#2F8F5B}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Avenir Next','Segoe UI',system-ui,-apple-system,sans-serif;-webkit-tap-highlight-color:transparent}
+.top{display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 8px;border-bottom:1px solid var(--line);background:var(--paper2)}
+.top h1{font-size:19px;margin:0;letter-spacing:-.01em}
+.top h1 small{display:block;font-size:12.5px;color:var(--mut);font-weight:600;margin-top:2px}
+.top .sp{flex:1}
+.ib{background:var(--paper2);border:1px solid var(--line);color:var(--ink);border-radius:10px;min-height:36px;padding:6px 11px;font:700 13px/1 inherit;font-family:inherit;cursor:pointer;white-space:nowrap}
+.ib:active{transform:translateY(1px)}
+.ib.acc{background:linear-gradient(180deg,#E0A64A,var(--accD));border-color:var(--acc);color:#fff}
+main{max-width:720px;margin:0 auto;padding:12px 16px 40px}
+.students{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin:6px 0 10px}
+.chip{background:var(--paper2);border:1px solid var(--line);border-radius:999px;padding:7px 12px;font:600 13px/1 inherit;font-family:inherit;color:var(--mut);cursor:pointer}
+.chip.sel{border-color:var(--acc);color:var(--ink);box-shadow:inset 0 -2px 0 var(--acc)}
+.chip.add{color:var(--acc)}
+.lab{font:700 11.5px/1 inherit;letter-spacing:.12em;text-transform:uppercase;color:var(--mut);margin:12px 0 6px}
+textarea{width:100%;min-height:52vh;resize:vertical;background:var(--paper2);color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:14px;font:500 15px/1.6 ui-monospace,'SF Mono',Menlo,Consolas,monospace;-webkit-user-select:text;user-select:text;outline:none}
+textarea:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(200,135,30,.15)}
+.tools{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0}
+.foot{font:500 12px/1.4 inherit;color:var(--mut);margin-top:8px}
+.foot b{color:var(--good)}
+#toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2A2620;color:#fff;border-radius:12px;padding:9px 14px;font:600 13px/1.3 inherit;opacity:0;transition:opacity .18s;pointer-events:none}
+#toast.on{opacity:1}
+@media print{.top,.students,.tools,.foot,.lab,#toast{display:none}body{background:#fff}textarea{border:0;min-height:auto;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>Practice schedule<small id="appName">All apps</small></h1>
+  <span class="sp"></span>
+  <button class="ib" id="bApps">Switch app</button>
+  <button class="ib acc" id="bDone">Done</button>
+</div>
+<main>
+  <div class="lab">Student</div>
+  <div class="students" id="students"></div>
+  <div class="lab">Schedule — saved on this device as you type</div>
+  <textarea id="txt" spellcheck="false" placeholder="Mon — 10 min: chords tab, F#m7b5 and B7 shapes&#10;Tue — Session skills, blues in A, twice through&#10;Wed — Exams tab: read the playback rules, then 3 flashcards&#10;…"></textarea>
+  <div class="tools">
+    <button class="ib" id="bWeek">Insert this week</button>
+    <button class="ib" id="bCopy">Copy</button>
+    <button class="ib" id="bShare">Share</button>
+    <button class="ib" id="bPrint">Print</button>
+    <span style="flex:1"></span>
+    <button class="ib" id="bClear">Clear</button>
+  </div>
+  <div class="foot" id="foot">Nothing saved yet for this app and student.</div>
+</main>
+<div id="toast"></div>
+<script>
+const $ = id => document.getElementById(id);
+const q = new URLSearchParams(location.search);
+const app = (q.get('app') || 'all').replace(/[^a-z0-9_-]/gi, '').toLowerCase() || 'all';
+const appName = q.get('name') || (app === 'all' ? 'All apps' : app);
+$('appName').textContent = appName;
+document.title = 'Practice schedule — ' + appName;
+const get = (k, d) => { try { const v = localStorage.getItem(k); return v === null ? d : v; } catch (_) { return d; } };
+const set = (k, v) => { try { localStorage.setItem(k, v); } catch (_) {} };
+let students = []; try { students = JSON.parse(get('ps.students', '[]')); } catch (_) {}
+if (!students.length) students = ['Me'];
+let student = get('ps.student', students[0]); if (!students.includes(student)) student = students[0];
+const key = () => 'ps.' + app + '.' + encodeURIComponent(student);
+let toastT = 0; const toast = m => { const t = $('toast'); t.textContent = m; t.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('on'), 1800); };
+function renderStudents() {
+  const el = $('students'); el.innerHTML = '';
+  students.forEach(n => { const b = document.createElement('button'); b.className = 'chip' + (n === student ? ' sel' : ''); b.textContent = n; b.addEventListener('click', () => { student = n; set('ps.student', n); renderStudents(); load(); }); b.addEventListener('contextmenu', e => { e.preventDefault(); removeStudent(n); }); el.appendChild(b); });
+  const add = document.createElement('button'); add.className = 'chip add'; add.textContent = '+ Add student'; add.addEventListener('click', () => { const n = (prompt('Student name') || '').trim(); if (!n) return; if (!students.includes(n)) students.push(n); set('ps.students', JSON.stringify(students)); student = n; set('ps.student', n); renderStudents(); load(); }); el.appendChild(add);
+  if (students.length > 1) { const rm = document.createElement('button'); rm.className = 'chip'; rm.textContent = 'Remove ' + student; rm.addEventListener('click', () => removeStudent(student)); el.appendChild(rm); }
+}
+function removeStudent(n) { if (students.length <= 1) return; if (!confirm('Remove ' + n + ' from the list? Their schedules stay saved on this device.')) return; students = students.filter(x => x !== n); set('ps.students', JSON.stringify(students)); if (student === n) student = students[0]; set('ps.student', student); renderStudents(); load(); }
+function load() { $('txt').value = get(key(), ''); updateFoot(false); }
+function updateFoot(saved) { const v = $('txt').value; const words = v.trim() ? v.trim().split(/\s+/).length : 0; $('foot').innerHTML = v ? `${words} words for <b>${student}</b> · ${appName}${saved ? ' · <b>saved</b>' : ''}` : 'Nothing saved yet for this app and student.'; }
+let saveT = 0; $('txt').addEventListener('input', () => { clearTimeout(saveT); saveT = setTimeout(() => { set(key(), $('txt').value); updateFoot(true); }, 250); });
+$('bWeek').addEventListener('click', () => { const d = new Date(); const day = (d.getDay() + 6) % 7; const mon = new Date(d); mon.setDate(d.getDate() - day); const lines = []; for (let i = 0; i < 7; i++) { const x = new Date(mon); x.setDate(mon.getDate() + i); lines.push(x.toLocaleDateString(undefined, {weekday: 'short', day: 'numeric', month: 'short'}) + ' — '); } const t = $('txt'); t.value = (t.value ? t.value.replace(/\s*$/, '') + '\n\n' : '') + lines.join('\n'); t.dispatchEvent(new Event('input')); t.focus(); });
+$('bCopy').addEventListener('click', async () => { try { await navigator.clipboard.writeText($('txt').value); toast('Copied'); } catch (_) { $('txt').select(); document.execCommand('copy'); toast('Copied'); } });
+$('bShare').addEventListener('click', async () => { const text = 'Practice schedule — ' + appName + ' — ' + student + '\n\n' + $('txt').value; if (navigator.share) { try { await navigator.share({title: 'Practice schedule', text}); } catch (_) {} } else { try { await navigator.clipboard.writeText(text); toast('No share sheet here — copied instead'); } catch (_) {} } });
+$('bPrint').addEventListener('click', () => print());
+$('bClear').addEventListener('click', () => { if (!$('txt').value || confirm('Clear this schedule?')) { $('txt').value = ''; set(key(), ''); updateFoot(true); } });
+$('bDone').addEventListener('click', () => { set(key(), $('txt').value); if (history.length > 1 && !window.opener) history.back(); else window.close(); setTimeout(() => toast('Saved — you can close this tab'), 100); });
+$('bApps').addEventListener('click', () => { const apps = Object.keys(localStorage).filter(k => k.startsWith('ps.') && k.split('.').length === 3).map(k => k.split('.')[1]).filter((x, i, a) => a.indexOf(x) === i); const pickd = prompt('Open the schedule for which app? Saved so far: ' + (apps.join(', ') || '(none)') + '\n\nType a name, or leave blank for "all".'); if (pickd === null) return; location.search = '?app=' + encodeURIComponent(pickd.trim() || 'all'); });
+renderStudents(); load();
+if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+</script>
+</body>
+</html>
